@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>400자 원고지 에디터</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --grid-color: #ff6b6b; /* 원고지 특유의 붉은색 */
+            --text-size: 18px;
+        }
+
+        body, html { margin: 0; padding: 0; background: #f0f0f0; font-family: 'Nanum+Myeongjo', serif; }
+
+        /* 상단 툴바 */
+        #toolbar {
+            position: fixed; top: 0; width: 100%; height: 50px;
+            background: #fff; border-bottom: 1px solid #ddd;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 15px; z-index: 1000; box-sizing: border-box;
+        }
+
+        .btn { cursor: pointer; padding: 5px 10px; border: 1px solid #ccc; background: #fff; border-radius: 4px; }
+
+        /* 원고지 영역 */
+        #paper-container {
+            margin-top: 60px; padding: 20px;
+            display: flex; justify-content: center;
+        }
+
+        #wongoji {
+            width: 210mm; height: 297mm; /* A4 사이즈 */
+            background: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 20mm; box-sizing: border-box;
+            display: grid;
+            grid-template-columns: repeat(20, 1fr); /* 가로 20칸 */
+            grid-template-rows: repeat(20, 1fr);    /* 세로 20칸 = 총 400자 */
+            border: 1px solid var(--grid-color);
+        }
+
+        .cell {
+            border: 0.5px solid var(--grid-color);
+            aspect-ratio: 1 / 1;
+            display: flex; justify-content: center; align-items: center;
+            font-size: var(--text-size);
+            outline: none;
+        }
+
+        /* 모바일 대응: 현재 입력 셀로 스크롤 */
+        .cell:focus { background-color: #fff9db; }
+
+        /* 드롭다운 메뉴 */
+        .dropdown { position: relative; display: inline-block; }
+        .dropdown-content {
+            display: none; position: absolute; right: 0;
+            background: white; border: 1px solid #ddd; min-width: 120px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+        .dropdown:hover .dropdown-content { display: block; }
+        .dropdown-content button {
+            width: 100%; padding: 10px; border: none; background: none; text-align: left; cursor: pointer;
+        }
+        .dropdown-content button:hover { background: #f1f1f1; }
+
+        @media print {
+            #toolbar { display: none; }
+            body { background: white; }
+            #paper-container { margin: 0; padding: 0; }
+            #wongoji { box-shadow: none; border: 1px solid var(--grid-color); }
+        }
+    </style>
+</head>
+<body>
+
+<header id="toolbar">
+    <div class="left">
+        <button class="btn" onclick="newDocument()">📄 새 원고지</button>
+    </div>
+    <div class="center">
+        <select id="fontSize" onchange="changeFontSize(this.value)">
+            <option value="16px">작게</option>
+            <option value="18px" selected>보통</option>
+            <option value="22px">크게</option>
+        </select>
+    </div>
+    <div class="right">
+        <div class="dropdown">
+            <button class="btn">공유/저장 ▾</button>
+            <div class="dropdown-content">
+                <button onclick="window.print()">🖨️ 인쇄 / PDF</button>
+                <button onclick="copyURL()">🔗 주소 복사</button>
+                <button onclick="copyText()">📝 텍스트 복사</button>
+            </div>
+        </div>
+    </div>
+</header>
+
+<div id="paper-container">
+    <div id="wongoji">
+        </div>
+</div>
+
+<script>
+    const container = document.getElementById('wongoji');
+    const TOTAL_CELLS = 400;
+
+    // 1. 셀 생성 및 초기화
+    function init() {
+        for (let i = 0; i < TOTAL_CELLS; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+            cell.contentEditable = "true";
+            cell.addEventListener('input', (e) => {
+                // 한 글자만 입력되도록 제어
+                if (e.target.innerText.length > 1) {
+                    e.target.innerText = e.target.innerText.charAt(0);
+                }
+                autoSave();
+                moveToNext(cell);
+            });
+            container.appendChild(cell);
+        }
+        loadData();
+    }
+
+    // 2. 자동 이동 (태블릿/모바일 편의성)
+    function moveToNext(current) {
+        if (current.innerText.length > 0) {
+            const next = current.nextElementSibling;
+            if (next) {
+                next.focus();
+                // 모바일에서 키보드가 가리지 않게 스크롤
+                next.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+        }
+    }
+
+    // 3. 주소창 저장 (Base64 인코딩)
+    function autoSave() {
+        const cells = document.querySelectorAll('.cell');
+        let content = Array.from(cells).map(c => c.innerText || " ").join("");
+        // URL에 저장하기 위해 Base64로 인코딩 (한글 깨짐 방지 위해 encodeURIComponent 사용)
+        const encoded = btoa(encodeURIComponent(content));
+        window.location.hash = encoded;
+    }
+
+    // 4. 데이터 불러오기
+    function loadData() {
+        if (window.location.hash) {
+            try {
+                const encoded = window.location.hash.substring(1);
+                const decoded = decodeURIComponent(atob(encoded));
+                const cells = document.querySelectorAll('.cell');
+                decoded.split("").forEach((char, i) => {
+                    if (cells[i]) cells[i].innerText = char === " " ? "" : char;
+                });
+            } catch (e) { console.error("데이터 로드 실패", e); }
+        }
+    }
+
+    // 5. 새 원고지
+    function newDocument() {
+        if (confirm("작성 중인 내용이 모두 삭제됩니다. 새로 만드시겠습니까?")) {
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach(c => c.innerText = "");
+            window.location.hash = "";
+        }
+    }
+
+    // 6. 기타 기능들
+    function changeFontSize(size) {
+        document.documentElement.style.setProperty('--text-size', size);
+    }
+
+    function copyURL() {
+        navigator.clipboard.writeText(window.location.href);
+        alert("주소가 복사되었습니다. 이 주소를 열면 작성하던 내용이 그대로 보입니다.");
+    }
+
+    function copyText() {
+        const cells = document.querySelectorAll('.cell');
+        const text = Array.from(cells).map(c => c.innerText || " ").join("").trim();
+        navigator.clipboard.writeText(text);
+        alert("텍스트가 복사되었습니다.");
+    }
+
+    init();
+</script>
+
+</body>
+</html>

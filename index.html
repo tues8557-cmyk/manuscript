@@ -3,14 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>400자 원고지 에디터 v3</title>
+    <title>정밀 재현 400자 원고지</title>
     <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --grid-color: #ff6b6b; /* 기본 빨강 */
-            --cell-size: 9mm;
-        }
-
+        :root { --grid-color: #ff6b6b; --cell-size: 8.8mm; --line-gap: 3mm; }
         body { margin: 0; padding: 0; background: #525659; font-family: 'Nanum Myeongjo', serif; }
 
         /* 툴바 */
@@ -20,54 +16,50 @@
             display: flex; justify-content: space-between; align-items: center;
             padding: 0 15px; z-index: 1000; box-sizing: border-box;
         }
-
         .btn { cursor: pointer; padding: 6px 12px; border: 1px solid #ccc; background: #fff; border-radius: 4px; font-size: 13px; }
 
-        /* 페이지 레이아웃 */
-        #app { margin-top: 60px; display: flex; flex-direction: column; align-items: center; gap: 40px; padding-bottom: 50px; }
-
+        /* 페이지 설정 */
+        #app { margin-top: 60px; display: flex; flex-direction: column; align-items: center; gap: 30px; padding-bottom: 50px; }
         .page {
-            width: 210mm; height: 297mm;
-            background: #fff; box-shadow: 0 0 15px rgba(0,0,0,0.3);
-            padding: 20mm; box-sizing: border-box;
-            display: flex; flex-direction: column;
-            page-break-after: always; position: relative;
+            width: 210mm; height: 297mm; background: #fff;
+            padding: 15mm 15mm; box-sizing: border-box;
+            display: flex; flex-direction: column; page-break-after: always;
         }
 
-        /* PDF 디자인 요소: 상단 NO. 및 페이지 번호 */
+        /* 이미지 재현: 상단 이중선 및 NO. */
         .page-header {
-            display: flex; justify-content: flex-end; align-items: center;
-            font-size: 18px; margin-bottom: 10mm; font-weight: bold; color: var(--grid-color);
+            width: 100%; border-top: 1.5px solid var(--grid-color);
+            border-bottom: 0.5px solid var(--grid-color);
+            padding: 2px 0; margin-bottom: 5px;
+            display: flex; justify-content: flex-end; align-items: flex-end;
+            font-size: 16px; color: #000; height: 30px;
         }
-        .no-text { margin-right: 5px; }
-        .page-num { border-bottom: 1px solid var(--grid-color); min-width: 30px; text-align: center; }
+        .page-header .no-area { font-weight: bold; margin-bottom: 2px; }
+        .page-header .page-num { min-width: 40px; text-align: center; border-bottom: 1px solid #000; margin-left: 10px; font-size: 20px; }
 
-        /* 격자 영역 */
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(20, var(--cell-size));
-            grid-template-rows: repeat(20, var(--cell-size));
-            border: 1px solid var(--grid-color);
-            align-self: center;
-        }
+        /* 원고지 격자 디자인 */
+        .wongoji-body { border: 1.5px solid var(--grid-color); display: flex; flex-direction: column; }
+        .wongoji-row { display: flex; border-bottom: 1px solid var(--grid-color); }
+        .wongoji-row:last-child { border-bottom: none; }
+        
+        /* 줄 사이 간격 (이미지처럼 가로로 긴 빈 칸) */
+        .row-gap { height: var(--line-gap); border-bottom: 1px solid var(--grid-color); background: #fff; }
 
         .cell {
             width: var(--cell-size); height: var(--cell-size);
-            border: 0.5px solid var(--grid-color);
+            border-right: 1px solid var(--grid-color);
             display: flex; justify-content: center; align-items: center;
-            font-size: 20px; outline: none; box-sizing: border-box; background: #fff;
+            font-size: 20px; outline: none; background: #fff; box-sizing: border-box;
         }
+        .cell:last-child { border-right: none; }
         .cell:focus { background-color: #fff9db; }
 
-        /* 색상 선택 메뉴 */
-        .color-picker { display: flex; gap: 10px; align-items: center; font-size: 13px; }
-        .color-dot { width: 15px; height: 15px; border-radius: 50%; cursor: pointer; border: 1px solid #ddd; }
+        /* 하단 큰 여백 */
+        .bottom-blank { flex-grow: 1; border: 1.5px solid var(--grid-color); border-top: none; margin-top: -1.5px; }
 
         @media print {
-            body { background: none; }
-            #toolbar { display: none; }
-            #app { margin: 0; padding: 0; gap: 0; }
-            .page { box-shadow: none; border: none; }
+            body { background: none; } #toolbar { display: none; }
+            #app { margin: 0; padding: 0; } .page { box-shadow: none; }
         }
     </style>
 </head>
@@ -75,15 +67,12 @@
 
 <header id="toolbar">
     <button class="btn" onclick="newDocument()">📄 새 원고지</button>
-    
-    <div class="color-picker">
-        색상:
-        <div class="color-dot" style="background: #ff6b6b;" onclick="changeColor('#ff6b6b')"></div>
-        <div class="color-dot" style="background: #444;" onclick="changeColor('#444')"></div>
-        <div class="color-dot" style="background: #000;" onclick="changeColor('#000')"></div>
+    <div style="display: flex; gap: 8px;">
+        <button class="btn" onclick="changeColor('#ff6b6b')" style="color:#ff6b6b">빨강</button>
+        <button class="btn" onclick="changeColor('#444')" style="color:#444">회색</button>
+        <button class="btn" onclick="changeColor('#000')" style="color:#000">검정</button>
     </div>
-
-    <div class="btn" onclick="window.print()">공유 / 인쇄 / PDF</div>
+    <button class="btn" onclick="window.print()">저장 / 인쇄</button>
 </header>
 
 <div id="app"></div>
@@ -91,80 +80,90 @@
 <script>
     const app = document.getElementById('app');
     const COLS = 20, ROWS = 20;
-    const CELLS_PER_PAGE = COLS * ROWS;
     let cellCounter = 0;
-    let pageCount = 0;
+    let pageCounter = 0;
 
     function createPage() {
-        pageCount++;
+        pageCounter++;
         const page = document.createElement('div');
         page.className = 'page';
-        
-        // PDF 디자인 반영 (NO. 페이지번호)
-        page.innerHTML = `
-            <div class="page-header">
-                <span class="no-text">NO.</span>
-                <span class="page-num">${pageCount}</span>
-            </div>
-        `;
+        page.innerHTML = `<div class="page-header"><div class="no-area">NO.</div><div class="page-num">${pageCounter}</div></div>`;
 
-        const grid = document.createElement('div');
-        grid.className = 'grid-container';
+        const bodyContainer = document.createElement('div');
+        bodyContainer.className = 'wongoji-body';
 
-        for (let i = 0; i < CELLS_PER_PAGE; i++) {
-            const cell = document.createElement('div');
-            cell.className = 'cell';
-            cell.contentEditable = "true";
-            cell.dataset.index = cellCounter++;
-
-            // 한글 입력 이슈 해결을 위한 이벤트 리스너
-            cell.addEventListener('compositionend', (e) => {
-                // 조합이 완료된 시점에만 다음 칸 이동
-                moveFocus(parseInt(e.target.dataset.index) + 1);
-                autoSave();
-            });
-
-            cell.addEventListener('keydown', handleKeyDown);
-            grid.appendChild(cell);
+        for (let r = 0; r < ROWS; r++) {
+            const row = document.createElement('div');
+            row.className = 'wongoji-row';
+            for (let c = 0; c < COLS; c++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.contentEditable = "true";
+                cell.dataset.index = cellCounter++;
+                
+                // [수정] 한글 입력 보완: 조합 완료 시에만 트리거
+                cell.addEventListener('compositionend', (e) => {
+                    setTimeout(() => moveFocus(parseInt(e.target.dataset.index) + 1), 10);
+                });
+                // 일반 문자/공백 입력
+                cell.addEventListener('input', (e) => {
+                    if (!e.isComposing && e.data) {
+                        moveFocus(parseInt(e.target.dataset.index) + 1);
+                    }
+                    autoSave();
+                });
+                cell.addEventListener('keydown', handleKeyNavigation);
+                row.appendChild(cell);
+            }
+            bodyContainer.appendChild(row);
+            // 이미지처럼 줄 사이에 여백 추가 (마지막 줄 제외)
+            if (r < ROWS - 1) {
+                const gap = document.createElement('div');
+                gap.className = 'row-gap';
+                bodyContainer.appendChild(gap);
+            }
         }
-        page.appendChild(grid);
+        page.appendChild(bodyContainer);
+        const blank = document.createElement('div');
+        blank.className = 'bottom-blank';
+        page.appendChild(blank);
         app.appendChild(page);
+    }
+
+    function handleKeyNavigation(e) {
+        const index = parseInt(e.target.dataset.index);
+        let nextIndex = -1;
+
+        if (e.key === 'ArrowRight') nextIndex = index + 1;
+        if (e.key === 'ArrowLeft') nextIndex = index - 1;
+        if (e.key === 'ArrowDown') nextIndex = index + COLS;
+        if (e.key === 'ArrowUp') nextIndex = index - COLS;
+        if (e.key === 'Enter') { e.preventDefault(); nextIndex = (Math.floor(index / COLS) + 1) * COLS; }
+        if (e.key === 'Backspace' && e.target.innerText === '' && index > 0) {
+            e.preventDefault();
+            const prev = getCell(index - 1);
+            if(prev) { prev.innerText = ''; prev.focus(); }
+            return;
+        }
+
+        if (nextIndex >= 0) {
+            e.preventDefault();
+            moveFocus(nextIndex);
+        }
     }
 
     function moveFocus(index) {
         if (index >= cellCounter) createPage();
-        const next = document.querySelector(`.cell[data-index="${index}"]`);
-        if (next) {
-            next.focus();
-            next.scrollIntoView({ behavior: "smooth", block: "center" });
+        const target = getCell(index);
+        if (target) {
+            target.focus();
+            target.scrollIntoView({ behavior: "smooth", block: "center" });
         }
     }
 
-    function handleKeyDown(e) {
-        const cell = e.target;
-        const index = parseInt(cell.dataset.index);
+    function getCell(index) { return document.querySelector(`.cell[data-index="${index}"]`); }
 
-        // 엔터: 다음 줄 첫 칸으로
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            const nextLineIndex = (Math.floor(index / COLS) + 1) * COLS;
-            moveFocus(nextLineIndex);
-        }
-
-        // 백스페이스: 이전 칸으로 이동하며 지우기
-        if (e.key === 'Backspace' && cell.innerText === '' && index > 0) {
-            e.preventDefault();
-            const prev = document.querySelector(`.cell[data-index="${index - 1}"]`);
-            if (prev) {
-                prev.innerText = '';
-                prev.focus();
-            }
-        }
-    }
-
-    function changeColor(color) {
-        document.documentElement.style.setProperty('--grid-color', color);
-    }
+    function changeColor(color) { document.documentElement.style.setProperty('--grid-color', color); }
 
     function autoSave() {
         const cells = document.querySelectorAll('.cell');
@@ -176,27 +175,18 @@
         if (window.location.hash) {
             try {
                 const decoded = decodeURIComponent(atob(decodeURIComponent(window.location.hash.substring(1))));
-                const pagesNeeded = Math.ceil(decoded.length / CELLS_PER_PAGE) || 1;
+                const pagesNeeded = Math.ceil(decoded.length / (COLS*ROWS)) || 1;
                 for(let i=1; i < pagesNeeded; i++) createPage();
-
                 const cells = document.querySelectorAll('.cell');
-                decoded.split("").forEach((char, i) => {
-                    if (cells[i]) cells[i].innerText = char === " " ? "" : char;
-                });
+                decoded.split("").forEach((char, i) => { if (cells[i]) cells[i].innerText = char === " " ? "" : char; });
             } catch (e) {}
         }
     }
 
-    function newDocument() {
-        if (confirm("새 원고지를 만드시겠습니까? 모든 내용이 사라집니다.")) {
-            window.location.hash = "";
-            location.reload();
-        }
-    }
+    function newDocument() { if (confirm("새로 작성하시겠습니까?")) { window.location.hash = ""; location.reload(); } }
 
     createPage();
     loadData();
 </script>
-
 </body>
 </html>

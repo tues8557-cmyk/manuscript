@@ -3,189 +3,225 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>400자 원고지 에디터</title>
+    <title>분리형 400자 원고지</title>
     <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo&display=swap" rel="stylesheet">
     <style>
         :root {
-            --grid-color: #ff6b6b; /* 원고지 특유의 붉은색 */
-            --text-size: 18px;
+            --grid-color: #ff6b6b;
+            --text-size: 20px;
         }
 
-        body, html { margin: 0; padding: 0; background: #f0f0f0; font-family: 'Nanum+Myeongjo', serif; }
+        body { margin: 0; padding: 0; background: #525659; font-family: 'Nanum Myeongjo', serif; }
 
         /* 상단 툴바 */
         #toolbar {
             position: fixed; top: 0; width: 100%; height: 50px;
-            background: #fff; border-bottom: 1px solid #ddd;
+            background: #ffffff; border-bottom: 1px solid #ddd;
             display: flex; justify-content: space-between; align-items: center;
             padding: 0 15px; z-index: 1000; box-sizing: border-box;
         }
 
-        .btn { cursor: pointer; padding: 5px 10px; border: 1px solid #ccc; background: #fff; border-radius: 4px; }
+        .btn { cursor: pointer; padding: 6px 12px; border: 1px solid #ccc; background: #fff; border-radius: 4px; font-size: 14px; }
 
-        /* 원고지 영역 */
-        #paper-container {
-            margin-top: 60px; padding: 20px;
-            display: flex; justify-content: center;
-        }
+        /* 페이지 컨테이너 */
+        #app { margin-top: 60px; display: flex; flex-direction: column; align-items: center; gap: 20px; padding-bottom: 50px; }
 
-        #wongoji {
-            width: 210mm; height: 297mm; /* A4 사이즈 */
-            background: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            padding: 20mm; box-sizing: border-box;
+        /* A4 용지 설정 */
+        .page {
+            width: 210mm; height: 297mm;
+            background: #fff; padding: 25mm 20mm; box-sizing: border-box;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
             display: grid;
             grid-template-columns: repeat(20, 1fr); /* 가로 20칸 */
-            grid-template-rows: repeat(20, 1fr);    /* 세로 20칸 = 총 400자 */
-            border: 1px solid var(--grid-color);
+            grid-template-rows: repeat(20, 1fr);    /* 세로 20칸 */
+            gap: 0; border: 1px solid var(--grid-color);
         }
 
         .cell {
             border: 0.5px solid var(--grid-color);
-            aspect-ratio: 1 / 1;
             display: flex; justify-content: center; align-items: center;
-            font-size: var(--text-size);
-            outline: none;
+            font-size: var(--text-size); font-weight: bold;
+            outline: none; cursor: text;
+            width: 100%; height: 100%; box-sizing: border-box;
+            line-height: 1;
         }
 
-        /* 모바일 대응: 현재 입력 셀로 스크롤 */
         .cell:focus { background-color: #fff9db; }
 
-        /* 드롭다운 메뉴 */
-        .dropdown { position: relative; display: inline-block; }
+        /* 공유 메뉴 */
+        .dropdown { position: relative; }
         .dropdown-content {
-            display: none; position: absolute; right: 0;
-            background: white; border: 1px solid #ddd; min-width: 120px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            display: none; position: absolute; right: 0; top: 100%;
+            background: white; border: 1px solid #ddd; min-width: 150px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
         .dropdown:hover .dropdown-content { display: block; }
         .dropdown-content button {
-            width: 100%; padding: 10px; border: none; background: none; text-align: left; cursor: pointer;
+            width: 100%; padding: 12px; border: none; background: none; text-align: left; cursor: pointer;
         }
-        .dropdown-content button:hover { background: #f1f1f1; }
+        .dropdown-content button:hover { background: #f5f5f5; }
 
         @media print {
+            body { background: none; }
             #toolbar { display: none; }
-            body { background: white; }
-            #paper-container { margin: 0; padding: 0; }
-            #wongoji { box-shadow: none; border: 1px solid var(--grid-color); }
+            #app { margin: 0; padding: 0; gap: 0; }
+            .page { box-shadow: none; margin: 0; page-break-after: always; border: 0.5px solid var(--grid-color); }
+        }
+
+        /* 모바일 대응 */
+        @media (max-width: 210mm) {
+            #app { transform: scale(0.45); transform-origin: top center; margin-top: 20px; }
+            #toolbar { transform: scale(1); }
         }
     </style>
 </head>
 <body>
 
 <header id="toolbar">
-    <div class="left">
-        <button class="btn" onclick="newDocument()">📄 새 원고지</button>
-    </div>
-    <div class="center">
+    <button class="btn" onclick="newDocument()">📄 새 원고지</button>
+    <div>
+        글자 크기: 
         <select id="fontSize" onchange="changeFontSize(this.value)">
             <option value="16px">작게</option>
-            <option value="18px" selected>보통</option>
-            <option value="22px">크게</option>
+            <option value="20px" selected>보통</option>
+            <option value="26px">크게</option>
         </select>
     </div>
-    <div class="right">
-        <div class="dropdown">
-            <button class="btn">공유/저장 ▾</button>
-            <div class="dropdown-content">
-                <button onclick="window.print()">🖨️ 인쇄 / PDF</button>
-                <button onclick="copyURL()">🔗 주소 복사</button>
-                <button onclick="copyText()">📝 텍스트 복사</button>
-            </div>
+    <div class="dropdown">
+        <button class="btn">공유 메뉴 ▾</button>
+        <div class="dropdown-content">
+            <button onclick="window.print()">🖨️ PDF 내려받기 / 인쇄</button>
+            <button onclick="copyURL()">🔗 주소 복사하기</button>
+            <button onclick="copyText()">📝 텍스트만 복사</button>
         </div>
     </div>
 </header>
 
-<div id="paper-container">
-    <div id="wongoji">
-        </div>
-</div>
+<div id="app">
+    </div>
 
 <script>
-    const container = document.getElementById('wongoji');
-    const TOTAL_CELLS = 400;
+    const app = document.getElementById('app');
+    const CELLS_PER_PAGE = 400;
+    let totalCellsCount = 0;
 
-    // 1. 셀 생성 및 초기화
-    function init() {
-        for (let i = 0; i < TOTAL_CELLS; i++) {
+    // 1. 초기 페이지 생성
+    function createPage() {
+        const page = document.createElement('div');
+        page.className = 'page';
+        for (let i = 0; i < CELLS_PER_PAGE; i++) {
             const cell = document.createElement('div');
             cell.className = 'cell';
             cell.contentEditable = "true";
-            cell.addEventListener('input', (e) => {
-                // 한 글자만 입력되도록 제어
-                if (e.target.innerText.length > 1) {
-                    e.target.innerText = e.target.innerText.charAt(0);
-                }
-                autoSave();
-                moveToNext(cell);
-            });
-            container.appendChild(cell);
+            cell.dataset.index = totalCellsCount++;
+            
+            // 한 글자 제한 및 다음 칸 이동
+            cell.addEventListener('input', handleInput);
+            // 백스페이스 감지
+            cell.addEventListener('keydown', handleKeyDown);
+            
+            page.appendChild(cell);
         }
-        loadData();
+        app.appendChild(page);
     }
 
-    // 2. 자동 이동 (태블릿/모바일 편의성)
-    function moveToNext(current) {
-        if (current.innerText.length > 0) {
-            const next = current.nextElementSibling;
+    // 2. 입력 핸들러
+    function handleInput(e) {
+        const cell = e.target;
+        if (cell.innerText.length > 0) {
+            // 첫 글자만 남기고 삭제 (초/중/종성 분리 입력 유지)
+            cell.innerText = cell.innerText.trim().charAt(0);
+            
+            // 마지막 칸이면 새 페이지 생성
+            if (cell.dataset.index == totalCellsCount - 1) {
+                createPage();
+            }
+            
+            // 다음 칸으로 이동
+            const next = getCellByIndex(parseInt(cell.dataset.index) + 1);
             if (next) {
                 next.focus();
-                // 모바일에서 키보드가 가리지 않게 스크롤
                 next.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+        }
+        autoSave();
+    }
+
+    // 3. 키다운 핸들러 (백스페이스 처리)
+    function handleKeyDown(e) {
+        const cell = e.target;
+        const index = parseInt(cell.dataset.index);
+
+        if (e.key === 'Backspace') {
+            if (cell.innerText === '' && index > 0) {
+                e.preventDefault();
+                const prev = getCellByIndex(index - 1);
+                if (prev) {
+                    prev.innerText = '';
+                    prev.focus();
+                    prev.scrollIntoView({ behavior: "smooth", block: "center" });
+                }
             }
         }
     }
 
-    // 3. 주소창 저장 (Base64 인코딩)
+    function getCellByIndex(index) {
+        return document.querySelector(`.cell[data-index="${index}"]`);
+    }
+
+    // 4. 자동 저장 (URL Hash)
     function autoSave() {
         const cells = document.querySelectorAll('.cell');
         let content = Array.from(cells).map(c => c.innerText || " ").join("");
-        // URL에 저장하기 위해 Base64로 인코딩 (한글 깨짐 방지 위해 encodeURIComponent 사용)
-        const encoded = btoa(encodeURIComponent(content));
-        window.location.hash = encoded;
+        // 공백 최적화 (끝부분 공백 제거)
+        content = content.replace(/\s+$/, "");
+        window.location.hash = encodeURIComponent(btoa(encodeURIComponent(content)));
     }
 
-    // 4. 데이터 불러오기
+    // 5. 불러오기
     function loadData() {
         if (window.location.hash) {
             try {
-                const encoded = window.location.hash.substring(1);
+                const encoded = decodeURIComponent(window.location.hash.substring(1));
                 const decoded = decodeURIComponent(atob(encoded));
+                
+                // 필요한 만큼 페이지 미리 생성
+                const requiredPages = Math.ceil(decoded.length / CELLS_PER_PAGE) || 1;
+                for(let i=0; i<requiredPages; i++) { if(i > 0) createPage(); }
+
                 const cells = document.querySelectorAll('.cell');
                 decoded.split("").forEach((char, i) => {
                     if (cells[i]) cells[i].innerText = char === " " ? "" : char;
                 });
-            } catch (e) { console.error("데이터 로드 실패", e); }
+            } catch (e) { console.error("로드 실패", e); }
         }
     }
 
-    // 5. 새 원고지
+    // 6. 기타 기능
     function newDocument() {
-        if (confirm("작성 중인 내용이 모두 삭제됩니다. 새로 만드시겠습니까?")) {
-            const cells = document.querySelectorAll('.cell');
-            cells.forEach(c => c.innerText = "");
+        if (confirm("모든 내용이 초기화됩니다. 계속하시겠습니까?")) {
             window.location.hash = "";
+            location.reload();
         }
     }
 
-    // 6. 기타 기능들
     function changeFontSize(size) {
         document.documentElement.style.setProperty('--text-size', size);
     }
 
     function copyURL() {
-        navigator.clipboard.writeText(window.location.href);
-        alert("주소가 복사되었습니다. 이 주소를 열면 작성하던 내용이 그대로 보입니다.");
+        navigator.clipboard.writeText(window.location.href).then(() => alert("주소가 복사되었습니다!"));
     }
 
     function copyText() {
         const cells = document.querySelectorAll('.cell');
-        const text = Array.from(cells).map(c => c.innerText || " ").join("").trim();
-        navigator.clipboard.writeText(text);
-        alert("텍스트가 복사되었습니다.");
+        const text = Array.from(cells).map(c => c.innerText || "").join("");
+        navigator.clipboard.writeText(text).then(() => alert("텍스트가 복사되었습니다!"));
     }
 
-    init();
+    // 실행
+    createPage();
+    loadData();
 </script>
 
 </body>

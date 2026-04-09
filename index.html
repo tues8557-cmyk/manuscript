@@ -1,218 +1,1165 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>정밀 재현 400자 원고지 v5</title>
-    <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo&display=swap" rel="stylesheet">
-    <style>
-        :root { --grid-color: #ff6b6b; --cell-size: 8.8mm; --line-gap: 3mm; }
-        body { margin: 0; padding: 0; background: #525659; font-family: 'Nanum Myeongjo', serif; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>원고지 쓰기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Nanum+Myeongjo:wght@400;700&family=Nanum+Gothic:wght@400;700&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
 
-        #toolbar {
-            position: fixed; top: 0; width: 100%; height: 50px;
-            background: #fff; border-bottom: 1px solid #ddd;
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 0 15px; z-index: 1000; box-sizing: border-box;
-        }
-        .btn { cursor: pointer; padding: 6px 12px; border: 1px solid #ccc; background: #fff; border-radius: 4px; font-size: 13px; }
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
 
-        #app { margin-top: 60px; display: flex; flex-direction: column; align-items: center; gap: 30px; padding-bottom: 50px; }
-        .page {
-            width: 210mm; height: 297mm; background: #fff;
-            padding: 15mm 15mm; box-sizing: border-box;
-            display: flex; flex-direction: column; page-break-after: always;
-        }
+:root {
+  --grid-color: #c0392b;
+  --cell-size: 35px;
+  --font-size: 22px;
+  --font-family: 'Noto Serif KR', serif;
+  --toolbar-height: 56px;
+}
 
-        .page-header {
-            width: 100%; border-top: 1.5px solid var(--grid-color);
-            border-bottom: 0.5px solid var(--grid-color);
-            padding: 2px 0; margin-bottom: 5px;
-            display: flex; justify-content: flex-end; align-items: flex-end;
-            font-size: 16px; color: #000; height: 30px;
-        }
-        .page-header .no-area { font-weight: bold; margin-bottom: 2px; }
-        .page-header .page-num { min-width: 40px; text-align: center; border-bottom: 1px solid #000; margin-left: 10px; font-size: 20px; }
+html, body {
+  width: 100%;
+  height: 100%;
+  background: #e8e4df;
+  font-family: var(--font-family);
+  overflow: hidden;
+}
 
-        .wongoji-body { border: 1.5px solid var(--grid-color); display: flex; flex-direction: column; }
-        .wongoji-row { display: flex; border-bottom: 1px solid var(--grid-color); }
-        .wongoji-row:last-child { border-bottom: none; }
-        .row-gap { height: var(--line-gap); border-bottom: 1px solid var(--grid-color); background: #fff; }
+/* ===== TOOLBAR ===== */
+.toolbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  min-height: var(--toolbar-height);
+  background: #2c2c2c;
+  color: #fff;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  font-family: 'Noto Sans KR', sans-serif;
+}
 
-        .cell {
-            width: var(--cell-size); height: var(--cell-size);
-            border-right: 1px solid var(--grid-color);
-            display: flex; justify-content: center; align-items: center;
-            font-size: 20px; outline: none; background: #fff; box-sizing: border-box;
-            overflow: hidden; white-space: nowrap;
-        }
-        .cell:last-child { border-right: none; }
-        .cell:focus { background-color: #fff9db; }
+.toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+  min-width: 0;
+}
 
-        .bottom-blank { flex-grow: 1; border: 1.5px solid var(--grid-color); border-top: none; margin-top: -1.5px; }
+.toolbar-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+}
 
-        @media print {
-            body { background: none; } #toolbar { display: none; }
-            #app { margin: 0; padding: 0; } .page { box-shadow: none; }
-        }
-    </style>
+.menu-toggle {
+  display: none;
+  width: 42px;
+  min-width: 42px;
+  height: 40px;
+  padding: 0 !important;
+  font-size: 18px;
+  line-height: 1;
+  justify-content: center;
+  align-items: center;
+  flex: 0 0 42px;
+}
+
+.toolbar-menu {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  overflow: visible;
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+.toolbar button,
+.toolbar select {
+  background: #444;
+  color: #fff;
+  border: 1px solid #555;
+  border-radius: 8px;
+  padding: 8px 11px;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: 'Noto Sans KR', sans-serif;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.toolbar button:hover,
+.toolbar select:hover {
+  background: #555;
+}
+
+.toolbar select {
+  min-width: 150px;
+  text-align: center;
+  text-align-last: center;
+  appearance: auto;
+}
+
+.btn-primary {
+  background: #2980b9 !important;
+  border-color: #3498db !important;
+  font-weight: 700;
+}
+.btn-primary:hover {
+  background: #3498db !important;
+}
+
+.color-set {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #3a3a3a;
+  border: 1px solid #555;
+  border-radius: 10px;
+  padding: 6px 8px;
+  flex: 0 0 auto;
+}
+
+.color-btn {
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px !important;
+  min-height: 28px !important;
+  border-radius: 50% !important;
+  padding: 0 !important;
+  border: 2px solid #777 !important;
+  flex: 0 0 28px !important;
+  aspect-ratio: 1 / 1;
+  box-sizing: border-box;
+}
+.color-btn.active {
+  border-color: #fff !important;
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.18);
+}
+.color-red { background: #c0392b !important; }
+.color-darkgray { background: #555555 !important; }
+.color-black { background: #222222 !important; }
+
+.zoom-control {
+  display: inline-flex;
+  align-items: center;
+  background: #444;
+  border-radius: 8px;
+  border: 1px solid #555;
+  overflow: hidden;
+  flex: 0 0 auto;
+}
+.zoom-control button {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  padding: 8px 10px;
+  min-width: 34px;
+}
+.zoom-control button:hover {
+  background: #555;
+}
+.zoom-label {
+  font-size: 12px;
+  min-width: 48px;
+  text-align: center;
+  padding: 0 6px;
+  pointer-events: none;
+  color: #f0f0f0;
+}
+
+.action-links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.tool-divider {
+  width: 1px;
+  height: 28px;
+  background: rgba(255,255,255,0.12);
+  margin: 0 2px;
+  flex: 0 0 auto;
+}
+
+/* ===== COMPACT MODE ===== */
+.toolbar.compact .menu-toggle {
+  display: inline-flex;
+}
+
+.toolbar.compact .toolbar-menu {
+  display: none;
+  position: absolute;
+  top: calc(var(--toolbar-height) + 6px);
+  left: 12px;
+  right: auto;
+  width: min(360px, calc(100vw - 24px));
+  background: #2c2c2c;
+  padding: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.32);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 12px;
+  max-height: calc(100vh - var(--toolbar-height) - 16px);
+  overflow-y: auto;
+}
+
+
+.toolbar.compact .toolbar-menu.open {
+  display: flex;
+}
+
+.toolbar.compact .toolbar-group {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.toolbar.compact button,
+.toolbar.compact select {
+  width: 100%;
+  min-height: 42px;
+  font-size: 14px;
+  justify-content: center;
+}
+
+.toolbar.compact select {
+  text-align: center;
+  text-align-last: center;
+}
+
+.toolbar.compact .color-set {
+  width: 100%;
+  justify-content: center;
+  padding: 8px 10px;
+}
+
+.toolbar.compact .color-btn {
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px !important;
+  min-height: 28px !important;
+  flex: 0 0 28px !important;
+  border-radius: 50% !important;
+}
+
+.toolbar.compact .zoom-control {
+  width: 100%;
+  justify-content: stretch;
+}
+
+.toolbar.compact .zoom-control button {
+  flex: 1 1 0;
+}
+
+.toolbar.compact .zoom-label {
+  flex: 0 0 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toolbar.compact .action-links {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.toolbar.compact .tool-divider {
+  display: none;
+}
+
+.toolbar:not(.compact) .menu-toggle {
+  display: none !important;
+}
+
+/* 모바일에서는 전체폭 드롭다운 허용 */
+@media (max-width: 640px) {
+  .toolbar.compact .toolbar-menu {
+    left: 0;
+    right: 0;
+    top: calc(var(--toolbar-height) - 2px);
+    width: auto;
+    border-radius: 0 0 14px 14px;
+    border-left: none;
+    border-right: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .toolbar-title {
+    font-size: 14px;
+  }
+  .menu-toggle {
+    width: 40px;
+    min-width: 40px;
+    height: 38px;
+    flex-basis: 40px;
+  }
+}
+
+/* ===== PAGE AREA ===== */
+.page-container {
+  position: fixed;
+  top: var(--toolbar-height);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 28px 0 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.zoom-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  transform-origin: top center;
+  transition: transform 0.2s ease-out;
+  width: 100%;
+  min-height: min-content;
+}
+
+.page {
+  background: #fff;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  position: relative;
+  width: 794px;
+  height: 1123px;
+  padding: 60px 47px;
+  flex-shrink: 0;
+}
+
+.page-header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: baseline;
+  padding: 0 4px 10px 0;
+  font-family: 'Noto Serif KR', serif;
+  color: #333;
+  font-size: 14px;
+  gap: 6px;
+}
+.page-header .page-no-label {
+  font-size: 12px;
+  color: #555;
+  letter-spacing: 1px;
+}
+.page-header .page-no {
+  font-size: 24px;
+  font-weight: 700;
+  color: #333;
+}
+
+/* ===== GRID ===== */
+.grid-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: fit-content;
+  margin: 0 auto;
+}
+.grid-row {
+  display: flex;
+  border: 2px solid var(--grid-color);
+  position: relative;
+}
+.grid-cell {
+  width: var(--cell-size);
+  height: var(--cell-size);
+  flex: 0 0 var(--cell-size);
+  border-right: 1px solid var(--grid-color);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size);
+  font-family: var(--font-family);
+  cursor: text;
+  position: relative;
+  line-height: 1;
+  color: #111;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.grid-row .grid-cell:last-child { border-right: none; }
+
+.overflow-cell {
+  position: absolute;
+  right: calc(var(--cell-size) * -1);
+  top: 0;
+  width: var(--cell-size);
+  height: var(--cell-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size);
+  color: #111;
+  pointer-events: none;
+}
+
+.grid-cell.cursor-cell { background: rgba(66,133,244,0.15); }
+.grid-cell.cursor-cell::after {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 15%;
+  bottom: 15%;
+  width: 2px;
+  background: #2962ff;
+  animation: blink 1s step-end infinite;
+}
+.grid-cell.composing-cell { background: rgba(255,193,7,0.2); }
+.grid-cell.composing-cell .cell-char {
+  border-bottom: 2px solid #f57c00;
+  padding-bottom: 1px;
+}
+@keyframes blink {
+  0%,100% { opacity:1; }
+  50% { opacity:0; }
+}
+
+/* ===== HIDDEN INPUT ===== */
+#hiddenInput {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  padding: 0;
+  margin: 0;
+  border: none;
+  outline: none;
+  z-index: -100;
+  pointer-events: none;
+}
+
+/* ===== TOAST ===== */
+.toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.82);
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 999px;
+  font-size: 14px;
+  opacity: 0;
+  transition: opacity 0.25s;
+  z-index: 9999;
+  font-family: 'Noto Sans KR', sans-serif;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; }
+
+/* ===== PRINT ===== */
+@media print {
+  @page { size: A4 portrait; margin: 0; }
+
+  html, body {
+    width: auto !important;
+    height: auto !important;
+    overflow: visible !important;
+    background: #fff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .toolbar, .toast, #hiddenInput {
+    display: none !important;
+  }
+
+  .page-container {
+    position: static !important;
+    padding: 0 !important;
+    display: block !important;
+    width: auto !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .zoom-wrapper {
+    transform: none !important;
+    display: block !important;
+    width: auto !important;
+    height: auto !important;
+    overflow: visible !important;
+    gap: 0 !important;
+  }
+
+  .page {
+    width: 794px !important;
+    height: 1123px !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    page-break-after: always;
+    break-after: page;
+  }
+
+  .page:last-child {
+    page-break-after: auto;
+    break-after: auto;
+  }
+
+  .page-header {
+    display: flex !important;
+    justify-content: flex-end !important;
+    align-items: baseline !important;
+    gap: 6px !important;
+    width: auto !important;
+    text-align: right !important;
+    padding: 0 4px 10px 0 !important;
+  }
+  .page-header .page-no-label,
+  .page-header .page-no {
+    width: auto !important;
+    display: inline !important;
+    flex: none !important;
+    text-align: inherit !important;
+  }
+}
+</style>
 </head>
 <body>
 
-<header id="toolbar">
-    <button class="btn" onclick="newDocument()">📄 새 원고지</button>
-    <div style="display: flex; gap: 8px;">
-        <button class="btn" onclick="changeColor('#ff6b6b')" style="color:#ff6b6b">빨강</button>
-        <button class="btn" onclick="changeColor('#444')" style="color:#444">회색</button>
-        <button class="btn" onclick="changeColor('#000')" style="color:#000">검정</button>
-    </div>
-    <button class="btn" onclick="window.print()">저장 / 인쇄</button>
-</header>
+<div class="toolbar" id="toolbar">
+  <div class="toolbar-left">
+    <button class="menu-toggle" id="menuToggle" onclick="toggleMenu()">☰</button>
+    <div class="toolbar-title">원고지 쓰기</div>
+  </div>
 
-<div id="app"></div>
+  <div class="toolbar-menu" id="toolbarMenu">
+    <div class="toolbar-group">
+      <button onclick="newDocument()">📄 새 문서</button>
+
+      <select id="fontSelect" onchange="changeFont(this.value)" title="글꼴">
+        <option value="'Noto Serif KR', serif">명조 (Noto Serif)</option>
+        <option value="'Nanum Myeongjo', serif">나눔명조</option>
+        <option value="'Noto Sans KR', sans-serif">고딕 (Noto Sans)</option>
+        <option value="'Nanum Gothic', sans-serif">나눔고딕</option>
+      </select>
+
+      <div class="color-set" title="원고지 색깔">
+        <button class="color-btn color-red active" data-color="#c0392b" onclick="changeColor(this)" title="빨강"></button>
+        <button class="color-btn color-darkgray" data-color="#555555" onclick="changeColor(this)" title="회색"></button>
+        <button class="color-btn color-black" data-color="#222222" onclick="changeColor(this)" title="검정"></button>
+      </div>
+    </div>
+
+    <div class="tool-divider"></div>
+
+    <div class="toolbar-group">
+      <div class="zoom-control">
+        <button onclick="setZoom('out')" title="축소">－</button>
+        <span class="zoom-label" id="zoomLabel">100%</span>
+        <button onclick="setZoom('in')" title="확대">＋</button>
+      </div>
+      <button onclick="setZoom('width')">너비맞춤</button>
+      <button onclick="setZoom('height')">높이맞춤</button>
+    </div>
+
+    <div class="tool-divider"></div>
+
+    <div class="toolbar-group action-links">
+      <button class="btn-primary" onclick="doPrint()">🖨️ 인쇄</button>
+      <button onclick="copyURL()">🔗 현재 문서 주소 복사</button>
+      <button onclick="copyText()">📋 텍스트만 복사</button>
+    </div>
+  </div>
+</div>
+
+<div class="page-container" id="pageContainer">
+  <div class="zoom-wrapper" id="zoomWrapper"></div>
+</div>
+
+<textarea id="hiddenInput" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+<div class="toast" id="toast"></div>
 
 <script>
-    const app = document.getElementById('app');
-    const COLS = 20, ROWS = 20;
-    let cellCounter = 0;
-    let pageCounter = 0;
-    let isComposing = false; // IME 조합 상태 추적
+const COLS = 20, ROWS = 20;
 
-    function createPage() {
-        pageCounter++;
-        const page = document.createElement('div');
-        page.className = 'page';
-        page.innerHTML = `<div class="page-header"><div class="no-area">NO.</div><div class="page-num">${pageCounter}</div></div>`;
+let state = {
+  chars: [],
+  cursorPos: 0,
+  font: "'Noto Serif KR', serif",
+  color: '#c0392b',
+  composing: false,
+  composingText: ''
+};
 
-        const bodyContainer = document.createElement('div');
-        bodyContainer.className = 'wongoji-body';
+let zoomState = { mode: 'width', scale: 1.0 };
 
-        for (let r = 0; r < ROWS; r++) {
-            const row = document.createElement('div');
-            row.className = 'wongoji-row';
-            for (let c = 0; c < COLS; c++) {
-                const cell = document.createElement('div');
-                cell.className = 'cell';
-                cell.contentEditable = "true";
-                cell.dataset.index = cellCounter++;
-                
-                // [개선] IME 상태 관리
-                cell.addEventListener('compositionstart', () => { isComposing = true; });
-                cell.addEventListener('compositionend', (e) => {
-                    isComposing = false;
-                    // 조합 완료 후 한 글자 초과분 제거 및 이동
-                    setTimeout(() => {
-                        finalizeCell(e.target);
-                        moveFocus(parseInt(e.target.dataset.index) + 1);
-                    }, 10);
-                });
+const LZ = {
+  compress(str){
+    if(!str) return '';
+    try {
+      const bytes = new TextEncoder().encode(str);
+      let bin = '';
+      bytes.forEach(b => bin += String.fromCharCode(b));
+      return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+    } catch(e) { return ''; }
+  },
+  decompress(b64){
+    if(!b64) return '';
+    try {
+      b64 = b64.replace(/-/g,'+').replace(/_/g,'/');
+      while(b64.length % 4) b64 += '=';
+      const bin = atob(b64);
+      const bytes = new Uint8Array(bin.length);
+      for(let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+      return new TextDecoder().decode(bytes);
+    } catch(e) { return ''; }
+  }
+};
 
-                cell.addEventListener('input', (e) => {
-                    if (!isComposing) {
-                        finalizeCell(e.target);
-                        if (e.data) moveFocus(parseInt(e.target.dataset.index) + 1);
-                    }
-                    autoSave();
-                });
+const scroller = document.getElementById('pageContainer');
+const input = document.getElementById('hiddenInput');
 
-                cell.addEventListener('keydown', handleKeyNavigation);
-                // 클릭 시 커서를 항상 마지막으로
-                cell.addEventListener('click', () => {
-                    const range = document.createRange();
-                    const sel = window.getSelection();
-                    range.selectNodeContents(cell);
-                    range.collapse(false);
-                    sel.removeAllRanges();
-                    sel.addRange(range);
-                });
+function saveToURL() {
+  const hash = LZ.compress(JSON.stringify({
+    t: state.chars.join(''),
+    f: state.font,
+    c: state.color
+  }));
+  history.replaceState(null, '', '#' + hash);
+}
 
-                row.appendChild(cell);
-            }
-            bodyContainer.appendChild(row);
-            if (r < ROWS - 1) {
-                const gap = document.createElement('div');
-                gap.className = 'row-gap';
-                bodyContainer.appendChild(gap);
-            }
-        }
-        page.appendChild(bodyContainer);
-        const blank = document.createElement('div');
-        blank.className = 'bottom-blank';
-        page.appendChild(blank);
-        app.appendChild(page);
+function loadFromURL() {
+  const hash = location.hash.slice(1);
+  if(!hash) return;
+  try {
+    const data = JSON.parse(LZ.decompress(hash));
+    state.chars = data.t ? data.t.split('') : [];
+    state.font = data.f || state.font;
+    state.color = data.c || state.color;
+    applySettings();
+  } catch(e) {}
+}
+
+function applySettings() {
+  document.documentElement.style.setProperty('--font-family', state.font);
+  document.documentElement.style.setProperty('--grid-color', state.color);
+  document.getElementById('fontSelect').value = state.font;
+
+  document.querySelectorAll('.color-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.color === state.color);
+  });
+}
+
+function buildLayout() {
+  const displayChars = [...state.chars];
+  let cLen = 0;
+
+  if (state.composing && state.composingText) {
+    const compArr = state.composingText.split('');
+    displayChars.splice(state.cursorPos, 0, ...compArr);
+    cLen = compArr.length;
+  }
+
+  const mapToLogical = (dispIdx) => {
+    if (!state.composing || !state.composingText) return dispIdx;
+    if (dispIdx < state.cursorPos) return dispIdx;
+    if (dispIdx < state.cursorPos + cLen) return state.cursorPos;
+    return dispIdx - cLen;
+  };
+
+  const pages = [];
+  let page = { rows: [] };
+  let row = { cells: [], overflow: null, isNewlineEnded: false, newlineLogicalIdx: -1 };
+  let cursorDisplayIdx = state.cursorPos + cLen;
+  
+  for (let i = 0; i < displayChars.length; i++) {
+    const ch = displayChars[i];
+
+    if (ch === '\n') {
+      row.isNewlineEnded = true;
+      row.newlineLogicalIdx = mapToLogical(i);
+      page.rows.push(row);
+
+      if (page.rows.length === ROWS) {
+        pages.push(page);
+        page = { rows: [] };
+      }
+
+      row = { cells: [], overflow: null, isNewlineEnded: false, newlineLogicalIdx: -1 };
+      continue;
     }
 
-    function finalizeCell(cell) {
-        if (cell.innerText.length > 1) {
-            cell.innerText = cell.innerText.trim().charAt(0);
-        }
+    row.cells.push({ char: ch, logicalIdx: mapToLogical(i), dispIdx: i });
+
+    if (row.cells.length === COLS) {
+      const nextCh = displayChars[i + 1];
+      if (nextCh && nextCh !== '\n' && /^[.,?!'"”’ ]$/.test(nextCh)) {
+        row.overflow = { char: nextCh, logicalIdx: mapToLogical(i + 1), dispIdx: i + 1 };
+        i++;
+      }
+
+      page.rows.push(row);
+
+      if (page.rows.length === ROWS) {
+        pages.push(page);
+        page = { rows: [] };
+      }
+
+      row = { cells: [], overflow: null, isNewlineEnded: false, newlineLogicalIdx: -1 };
+    }
+  }
+  
+  if (row.cells.length > 0 || displayChars[displayChars.length - 1] === '\n' || displayChars.length === 0) {
+    page.rows.push(row);
+  }
+
+  if (page.rows.length > 0) pages.push(page);
+  if (pages.length === 0) {
+    pages.push({ rows: [{ cells: [], overflow: null, isNewlineEnded: false, newlineLogicalIdx: -1 }] });
+  }
+  
+  let lastLogical = 0;
+  for (let pIdx = 0; pIdx < pages.length; pIdx++) {
+    const p = pages[pIdx];
+    while (p.rows.length < ROWS) {
+      p.rows.push({ cells: [], overflow: null, isNewlineEnded: false, newlineLogicalIdx: -1 });
     }
 
-    function handleKeyNavigation(e) {
-        const index = parseInt(e.target.dataset.index);
-        let nextIndex = -1;
-
-        if (e.key === 'ArrowRight') nextIndex = index + 1;
-        if (e.key === 'ArrowLeft') nextIndex = index - 1;
-        if (e.key === 'ArrowDown') nextIndex = index + COLS;
-        if (e.key === 'ArrowUp') nextIndex = index - COLS;
-        if (e.key === 'Enter') { e.preventDefault(); nextIndex = (Math.floor(index / COLS) + 1) * COLS; }
-        
-        // 백스페이스 처리
-        if (e.key === 'Backspace' && e.target.innerText === '' && index > 0) {
-            e.preventDefault();
-            const prev = getCell(index - 1);
-            if(prev) { prev.innerText = ''; prev.focus(); }
-            return;
+    for (let rIdx = 0; rIdx < ROWS; rIdx++) {
+      const r = p.rows[rIdx];
+      for (let cIdx = 0; cIdx < COLS; cIdx++) {
+        if (r.cells[cIdx]) {
+          lastLogical = r.cells[cIdx].logicalIdx + 1;
+        } else {
+          if (r.isNewlineEnded && !r.overflow) {
+            r.cells[cIdx] = { char: '', logicalIdx: r.newlineLogicalIdx, dispIdx: -1, empty: true };
+          } else {
+            r.cells[cIdx] = { char: '', logicalIdx: lastLogical, dispIdx: -1, empty: true };
+          }
         }
-
-        // [수정] Delete 키 처리: 현재 칸 지우기 (커서 유지)
-        if (e.key === 'Delete') {
-            e.target.innerText = '';
-            autoSave();
-        }
-
-        if (nextIndex >= 0 && !isComposing) {
-            e.preventDefault();
-            moveFocus(nextIndex);
-        }
+      }
+      if (r.overflow) lastLogical = r.overflow.logicalIdx + 1;
+      if (r.isNewlineEnded) lastLogical = r.newlineLogicalIdx + 1;
     }
+  }
 
-    function moveFocus(index) {
-        if (index >= cellCounter) createPage();
-        const target = getCell(index);
-        if (target) {
-            target.focus();
-            // 모바일 키보드 가림 방지
-            target.scrollIntoView({ behavior: "smooth", block: "center" });
+  return { pages, cursorDisplayIdx };
+}
+
+function render() {
+  const layout = buildLayout();
+  const wrapper = document.getElementById('zoomWrapper');
+
+  while (wrapper.children.length < layout.pages.length) {
+    wrapper.appendChild(createPage(wrapper.children.length));
+  }
+  while (wrapper.children.length > layout.pages.length) {
+    wrapper.removeChild(wrapper.lastChild);
+  }
+
+  let foundCursor = false;
+
+  for (let pIdx = 0; pIdx < layout.pages.length; pIdx++) {
+    const pageData = layout.pages[pIdx];
+    const pageEl = wrapper.children[pIdx];
+    pageEl.querySelector('.page-no').textContent = pIdx + 1;
+    const gridRows = pageEl.querySelectorAll('.grid-row');
+
+    for (let rIdx = 0; rIdx < ROWS; rIdx++) {
+      const rowData = pageData.rows[rIdx];
+      const rowEl = gridRows[rIdx];
+      const cells = rowEl.querySelectorAll('.grid-cell');
+
+      for (let cIdx = 0; cIdx < COLS; cIdx++) {
+        const cellData = rowData.cells[cIdx];
+        const cellEl = cells[cIdx];
+        cellEl.querySelector('.cell-char').textContent = cellData.char;
+        cellEl.dataset.logicalIdx = cellData.logicalIdx;
+
+        let isCursor = false;
+        if (!foundCursor) {
+          if (cellData.dispIdx === layout.cursorDisplayIdx) {
+            isCursor = true;
+            foundCursor = true;
+          } else if (cellData.empty && cellData.logicalIdx >= state.cursorPos) {
+            isCursor = true;
+            foundCursor = true;
+          }
         }
-    }
 
-    function getCell(index) { return document.querySelector(`.cell[data-index="${index}"]`); }
-    function changeColor(color) { document.documentElement.style.setProperty('--grid-color', color); }
+        const isComposingChar =
+          state.composing &&
+          !cellData.empty &&
+          cellData.dispIdx >= state.cursorPos &&
+          cellData.dispIdx < state.cursorPos + state.composingText.length;
 
-    function autoSave() {
-        const cells = document.querySelectorAll('.cell');
-        const content = Array.from(cells).map(c => c.innerText || " ").join("").replace(/\s+$/, "");
-        window.location.hash = encodeURIComponent(btoa(encodeURIComponent(content)));
-    }
+        cellEl.className = 'grid-cell';
+        if (isCursor && !state.composing) cellEl.classList.add('cursor-cell');
+        if (isComposingChar) cellEl.classList.add('composing-cell');
+      }
 
-    function loadData() {
-        if (window.location.hash) {
-            try {
-                const decoded = decodeURIComponent(atob(decodeURIComponent(window.location.hash.substring(1))));
-                const pagesNeeded = Math.ceil(decoded.length / (COLS*ROWS)) || 1;
-                for(let i=1; i < pagesNeeded; i++) createPage();
-                const cells = document.querySelectorAll('.cell');
-                decoded.split("").forEach((char, i) => { if (cells[i]) cells[i].innerText = char === " " ? "" : char; });
-            } catch (e) {}
+      let overflowEl = rowEl.querySelector('.overflow-cell');
+      if (rowData.overflow) {
+        if (!overflowEl) {
+          overflowEl = document.createElement('div');
+          overflowEl.className = 'overflow-cell';
+          rowEl.appendChild(overflowEl);
         }
+        overflowEl.textContent = rowData.overflow.char;
+      } else if (overflowEl) {
+        overflowEl.remove();
+      }
     }
+  }
+}
 
-    function newDocument() { if (confirm("새로 작성하시겠습니까?")) { window.location.hash = ""; location.reload(); } }
+function createPage(idx) {
+  const page = document.createElement('div');
+  page.className = 'page';
 
-    createPage();
-    loadData();
+  let html = `<div class="page-header"><span class="page-no-label">NO.</span><span class="page-no">${idx + 1}</span></div><div class="grid-wrapper">`;
+  for (let r = 0; r < ROWS; r++) {
+    html += `<div class="grid-row">`;
+    for (let c = 0; c < COLS; c++) {
+      html += `<div class="grid-cell"><span class="cell-char"></span></div>`;
+    }
+    html += `</div>`;
+  }
+  html += `</div>`;
+
+  page.innerHTML = html;
+  return page;
+}
+
+function focusInput() {
+  setTimeout(() => {
+    input.focus({ preventScroll: true });
+  }, 50);
+}
+
+document.addEventListener('pointerdown', (e) => {
+  if (e.target.closest('.toolbar')) return;
+
+  const cell = e.target.closest('.grid-cell');
+  if (cell) {
+    e.preventDefault();
+    const idx = parseInt(cell.dataset.logicalIdx, 10);
+    if (!isNaN(idx)) {
+      state.cursorPos = Math.min(idx, state.chars.length);
+      render();
+      focusInput();
+    }
+  } else if (e.target.closest('.page-container')) {
+    e.preventDefault();
+    focusInput();
+  }
+});
+
+input.addEventListener('compositionstart', () => {
+  state.composing = true;
+  state.composingText = '';
+  render();
+});
+
+input.addEventListener('compositionupdate', (e) => {
+  state.composingText = e.data || '';
+  render();
+});
+
+input.addEventListener('compositionend', (e) => {
+  state.composing = false;
+  if (e.data) {
+    for (const ch of e.data) {
+      state.chars.splice(state.cursorPos, 0, ch);
+      state.cursorPos++;
+    }
+  }
+  state.composingText = '';
+  input.value = '';
+  render();
+  saveToURL();
+  scrollToCursor();
+});
+
+input.addEventListener('input', () => {
+  if (state.composing) return;
+  if (input.value) {
+    for (const ch of input.value) {
+      state.chars.splice(state.cursorPos, 0, ch);
+      state.cursorPos++;
+    }
+    input.value = '';
+    render();
+    saveToURL();
+    scrollToCursor();
+  }
+});
+
+input.addEventListener('keydown', (e) => {
+  if (state.composing) return;
+
+  if (e.key === 'Backspace' && state.cursorPos > 0) {
+    e.preventDefault();
+    state.chars.splice(state.cursorPos - 1, 1);
+    state.cursorPos--;
+    render();
+    saveToURL();
+    scrollToCursor();
+  }
+  else if (e.key === 'Delete' && state.cursorPos < state.chars.length) {
+    e.preventDefault();
+    state.chars.splice(state.cursorPos, 1);
+    render();
+    saveToURL();
+  }
+  else if (e.key === 'Enter') {
+    e.preventDefault();
+    state.chars.splice(state.cursorPos, 0, '\n');
+    state.cursorPos++;
+    render();
+    saveToURL();
+    scrollToCursor();
+  }
+  else if (e.key === 'ArrowLeft' && state.cursorPos > 0) {
+    state.cursorPos--;
+    render();
+    scrollToCursor();
+  }
+  else if (e.key === 'ArrowRight' && state.cursorPos < state.chars.length) {
+    state.cursorPos++;
+    render();
+    scrollToCursor();
+  }
+});
+
+function scrollToCursor() {
+  requestAnimationFrame(() => {
+    const el = document.querySelector('.cursor-cell, .composing-cell');
+    if (!el) return;
+
+    const containerRect = scroller.getBoundingClientRect();
+    const rect = el.getBoundingClientRect();
+
+    const topLimit = containerRect.top + 90;
+    const bottomLimit = containerRect.bottom - 70;
+
+    if (rect.top < topLimit) {
+      scroller.scrollBy({
+        top: rect.top - topLimit,
+        behavior: 'smooth'
+      });
+    } else if (rect.bottom > bottomLimit) {
+      scroller.scrollBy({
+        top: rect.bottom - bottomLimit,
+        behavior: 'smooth'
+      });
+    }
+  });
+}
+
+/* ===== ZOOM ===== */
+function initMobileZoom() {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+
+  if (h > w) {
+    setZoom('width');
+  } else {
+    zoomState = {
+      mode: 'custom',
+      scale: Math.min(2.0, Math.max(0.25, (w * 0.6) / 794))
+    };
+    applyZoom();
+  }
+}
+
+function setZoom(action) {
+  const PAGE_W = 794 + 80;
+  const PAGE_H = 1123 + 120;
+
+  if (action === 'in') {
+    zoomState.mode = 'custom';
+    zoomState.scale = Math.min(3.0, zoomState.scale + 0.1);
+  }
+  else if (action === 'out') {
+    zoomState.mode = 'custom';
+    zoomState.scale = Math.max(0.25, zoomState.scale - 0.1);
+  }
+  else if (action === 'width') {
+    zoomState.mode = 'width';
+    zoomState.scale = window.innerWidth / PAGE_W;
+  }
+  else if (action === 'height') {
+    zoomState.mode = 'height';
+    zoomState.scale = ((window.visualViewport ? window.visualViewport.height : window.innerHeight) - 80) / PAGE_H;
+  }
+
+  applyZoom();
+}
+
+function applyZoom() {
+  document.getElementById('zoomWrapper').style.transform = `scale(${zoomState.scale})`;
+  document.getElementById('zoomLabel').textContent = Math.round(zoomState.scale * 100) + '%';
+}
+
+/* ===== TOOLBAR MODE ===== */
+function getMenuNaturalWidth() {
+  const toolbarMenu = document.getElementById('toolbarMenu');
+  const items = Array.from(toolbarMenu.children);
+  let total = 0;
+
+  items.forEach((el) => {
+    const style = window.getComputedStyle(el);
+    total += el.offsetWidth;
+    total += parseFloat(style.marginLeft || 0);
+    total += parseFloat(style.marginRight || 0);
+  });
+
+  const gap = parseFloat(window.getComputedStyle(toolbarMenu).columnGap || window.getComputedStyle(toolbarMenu).gap || 0);
+  if (items.length > 1) total += gap * (items.length - 1);
+
+  return total;
+}
+
+function updateToolbarMode() {
+  const toolbar = document.getElementById('toolbar');
+  const toolbarMenu = document.getElementById('toolbarMenu');
+  const left = toolbar.querySelector('.toolbar-left');
+
+  toolbar.classList.remove('compact');
+  toolbarMenu.classList.remove('open');
+
+  const availableWidth = toolbar.clientWidth - 24;
+  const neededWidth = left.offsetWidth + getMenuNaturalWidth() + 24;
+
+  if (neededWidth > availableWidth) {
+    toolbar.classList.add('compact');
+  }
+}
+
+function toggleMenu() {
+  const toolbar = document.getElementById('toolbar');
+  if (!toolbar.classList.contains('compact')) return;
+  document.getElementById('toolbarMenu').classList.toggle('open');
+}
+
+function closeMenuOnCompact() {
+  const toolbar = document.getElementById('toolbar');
+  if (toolbar.classList.contains('compact')) {
+    document.getElementById('toolbarMenu').classList.remove('open');
+  }
+}
+
+/* ===== ACTIONS ===== */
+function newDocument() {
+  if (confirm('모든 내용이 지워집니다. 새로 시작할까요?')) {
+    state.chars = [];
+    state.cursorPos = 0;
+    render();
+    saveToURL();
+    focusInput();
+    closeMenuOnCompact();
+  }
+}
+
+function changeFont(v) {
+  state.font = v;
+  document.documentElement.style.setProperty('--font-family', v);
+  render();
+  saveToURL();
+  focusInput();
+}
+
+function changeColor(btn) {
+  document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  state.color = btn.dataset.color;
+  document.documentElement.style.setProperty('--grid-color', state.color);
+  saveToURL();
+  focusInput();
+}
+
+function doPrint() {
+  closeMenuOnCompact();
+  setTimeout(() => window.print(), 100);
+}
+
+function copyURL() {
+  navigator.clipboard.writeText(location.href).then(() => {
+    showToast('현재 문서 주소가 복사되었습니다.');
+  });
+  closeMenuOnCompact();
+}
+
+function copyText() {
+  navigator.clipboard.writeText(state.chars.join('')).then(() => {
+    showToast('텍스트가 복사되었습니다.');
+  });
+  closeMenuOnCompact();
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+document.addEventListener('click', (e) => {
+  const toolbar = document.getElementById('toolbar');
+  const menu = document.getElementById('toolbarMenu');
+
+  if (toolbar.classList.contains('compact') && menu.classList.contains('open')) {
+    if (!e.target.closest('#toolbarMenu') && !e.target.closest('#menuToggle')) {
+      menu.classList.remove('open');
+    }
+  }
+});
+
+window.addEventListener('resize', () => {
+  if (zoomState.mode === 'width' || zoomState.mode === 'height') {
+    setZoom(zoomState.mode);
+  }
+  updateToolbarMode();
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadFromURL();
+  applySettings();
+  render();
+  initMobileZoom();
+  focusInput();
+  updateToolbarMode();
+});
 </script>
 </body>
 </html>

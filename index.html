@@ -338,8 +338,7 @@ html, body {
   pointer-events: none;
 }
 
-/* 커서 배경색의 투명도를 낮춰 깜빡임에 대한 피로도를 줄입니다. */
-.grid-cell.cursor-cell { background: rgba(66,133,244,0.05); }
+.grid-cell.cursor-cell { background: rgba(66,133,244,0.15); }
 .grid-cell.cursor-cell::after {
   content: '';
   position: absolute;
@@ -355,12 +354,21 @@ html, body {
   box-shadow: inset 0 0 0 2px rgba(41,98,255,0.25);
 }
 .grid-cell.composing-cell {
-  background: rgba(255,193,7,0.15); /* 조합 중 배경도 눈에 편안하게 조정 */
+  background: rgba(255,193,7,0.2);
 }
 .grid-cell.composing-cell .cell-char {
   border-bottom: 2px solid #f57c00;
   padding-bottom: 1px;
 }
+
+/* 마침표, 쉼표 좌측 하단 정렬 스타일 */
+.grid-cell.punct-left {
+  justify-content: flex-start;
+  align-items: flex-end;
+  padding-left: 6px;
+  padding-bottom: 4px;
+}
+
 @keyframes blink {
   0%,100% { opacity:1; }
   50% { opacity:0; }
@@ -442,24 +450,19 @@ html, body {
     height: auto !important;
     overflow: visible !important;
     gap: 0 !important;
-    padding: 0 !important;
-    margin: 0 !important;
   }
 
-  /* 인쇄 시 여백 오버플로우로 인한 빈 페이지 생성 방지를 위해 높이를 살짝 줄임 */
   .page {
     width: 210mm !important;
-    height: 296mm !important;
-    margin: 0 auto !important;
+    height: 297mm !important;
+    margin: 0 !important;
     padding: 60px 47px !important;
     box-shadow: none !important;
     overflow: hidden !important;
     page-break-after: always;
     break-after: page;
-    page-break-inside: avoid;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
-    box-sizing: border-box !important;
   }
 
   .page:last-child {
@@ -609,6 +612,36 @@ function setLogicalSelection(start, end = start, opts = {}) {
   if (opts.focus)      focusInput();
 }
 
+// 연속된 마침표 3개(...)를 말줄임표(…) 하나로 변환하는 함수
+function applyAutoReplace() {
+  let text = state.chars.join('');
+  if (!text.includes('...')) return false;
+
+  let changed = false;
+  let start = state.selectionStart;
+  let end = state.selectionEnd;
+
+  while (text.includes('...')) {
+    const idx = text.indexOf('...');
+    text = text.substring(0, idx) + '…' + text.substring(idx + 3);
+    changed = true;
+
+    // 문자 길이가 줄어들었으므로 커서 위치를 논리적으로 조정
+    if (start > idx + 2) start -= 2;
+    else if (start > idx) start = idx + 1;
+
+    if (end > idx + 2) end -= 2;
+    else if (end > idx) end = idx + 1;
+  }
+
+  state.chars = text.split('');
+  state.selectionStart = start;
+  state.selectionEnd = end;
+  state.cursorPos = end;
+
+  return changed;
+}
+
 function replaceRangeInState(start, end, text) {
   const max = state.chars.length;
   const s = clamp(Math.min(start, end), 0, max);
@@ -679,6 +712,7 @@ function deleteWordForwardInState() {
 }
 
 function afterStateEdit(save = true) {
+  applyAutoReplace();
   render();
   syncInputFromState();
   if (save) saveToURL();
@@ -739,6 +773,10 @@ function syncStateFromInput() {
 
   const { start, end } = clampNativeSelection();
   setLogicalSelection(start - SENTINEL_LEN, end - SENTINEL_LEN);
+
+  if (!state.composing && applyAutoReplace()) {
+    syncInputFromState();
+  }
 }
 
 function syncFromNativeInput(save = true) {
@@ -889,10 +927,6 @@ function render() {
 
   let foundCursor = false;
 
-  // iOS의 한글 낱자 입력 시 조합이 풀리는 현상을 시각적으로 보완하기 위한 확인
-  const prevChar = state.cursorPos > 0 ? state.chars[state.cursorPos - 1] : '';
-  const isPrevCharJamo = /^[ㄱ-ㅎㅏ-ㅣ]$/.test(prevChar);
-
   for (let pIdx = 0; pIdx < layout.pages.length; pIdx++) {
     const pageData = layout.pages[pIdx];
     const pageEl   = wrapper.children[pIdx];
@@ -910,17 +944,9 @@ function render() {
         cellEl.querySelector('.cell-char').textContent = cellData.char;
         cellEl.dataset.logicalIdx = cellData.logicalIdx;
 
-        // 초성 입력 후 조합 상태 유지 효과를 위한 판단 로직
-        const isComposingChar =
-          (state.composing && state.cursorPos > 0 && !cellData.empty && cellData.logicalIdx === state.cursorPos - 1) ||
-          (isPrevCharJamo && !cellData.empty && cellData.logicalIdx === state.cursorPos - 1);
-
         let isCursor = false;
         if (!selectionActive && !foundCursor) {
-          if (isComposingChar) {
-            // 한글 조합 중일 때는 이후 빈 셀에 파란 커서를 그리지 않습니다.
-            foundCursor = true;
-          } else if (cellData.dispIdx === layout.cursorDisplayIdx) {
+          if (cellData.dispIdx === layout.cursorDisplayIdx) {
             isCursor = true;
             foundCursor = true;
           } else if (cellData.empty && cellData.logicalIdx >= state.cursorPos) {
@@ -928,6 +954,12 @@ function render() {
             foundCursor = true;
           }
         }
+
+        const isComposingChar =
+          state.composing &&
+          state.cursorPos > 0 &&
+          !cellData.empty &&
+          cellData.logicalIdx === state.cursorPos - 1;
 
         const isSelected =
           selectionActive &&
@@ -941,10 +973,11 @@ function render() {
           cellData.logicalIdx === state.selectionEnd - 1;
 
         cellEl.className = 'grid-cell';
-        if (isCursor && !selectionActive) cellEl.classList.add('cursor-cell');
-        if (isSelected)                   cellEl.classList.add('selected-cell');
-        if (isSelectionFocus)             cellEl.classList.add('selection-focus-cell');
-        if (isComposingChar)              cellEl.classList.add('composing-cell');
+        if (isCursor && !state.composing && !selectionActive) cellEl.classList.add('cursor-cell');
+        if (isSelected)                                       cellEl.classList.add('selected-cell');
+        if (isSelectionFocus)                                 cellEl.classList.add('selection-focus-cell');
+        if (isComposingChar)                                  cellEl.classList.add('composing-cell');
+        if (cellData.char === '.' || cellData.char === ',')   cellEl.classList.add('punct-left');
       }
 
       let overflowEl = rowEl.querySelector('.overflow-cell');

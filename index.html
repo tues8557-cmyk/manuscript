@@ -279,7 +279,8 @@ html, body {
   background: #fff;
   box-shadow: 0 4px 20px rgba(0,0,0,0.15);
   position: relative;
-  width: 794px; height: 1123px;
+  width: 794px;
+  height: 1123px;
   padding: 60px 47px;
   flex-shrink: 0;
 }
@@ -290,7 +291,9 @@ html, body {
   align-items: baseline;
   padding: 0 4px 10px 0;
   font-family: 'Noto Serif KR', serif;
-  color: #333; font-size: 14px; gap: 6px;
+  color: #333;
+  font-size: 14px;
+  gap: 6px;
 }
 .page-header .page-no-label { font-size: 12px; color: #555; letter-spacing: 1px; }
 .page-header .page-no { font-size: 24px; font-weight: 700; color: #333; }
@@ -309,17 +312,20 @@ html, body {
   position: relative;
 }
 .grid-cell {
-  width: var(--cell-size); height: var(--cell-size);
+  width: var(--cell-size);
+  height: var(--cell-size);
   flex: 0 0 var(--cell-size);
   border-right: 1px solid var(--grid-color);
   box-sizing: border-box;
   display: flex;
-  align-items: center; justify-content: center;
+  align-items: center;
+  justify-content: center;
   font-size: var(--font-size);
   font-family: var(--font-family);
   cursor: text;
   position: relative;
-  line-height: 1; color: #111;
+  line-height: 1;
+  color: #111;
   user-select: none;
   -webkit-user-select: none;
   touch-action: manipulation;
@@ -330,29 +336,36 @@ html, body {
   position: absolute;
   right: calc(var(--cell-size) * -1);
   top: 0;
-  width: var(--cell-size); height: var(--cell-size);
+  width: var(--cell-size);
+  height: var(--cell-size);
   display: flex;
-  align-items: center; justify-content: center;
+  align-items: center;
+  justify-content: center;
   font-size: var(--font-size);
   color: #111;
   pointer-events: none;
 }
 
 .grid-cell.cursor-cell { background: rgba(66,133,244,0.15); }
-.grid-cell.cursor-cell::after {
+.grid-cell.cursor-cell::after,
+.grid-cell.composing-cursor-cell::after {
   content: '';
   position: absolute;
-  left: 2px; top: 15%; bottom: 15%;
+  left: 2px;
+  top: 15%;
+  bottom: 15%;
   width: 2px;
   background: #2962ff;
   animation: blink 1s step-end infinite;
 }
+
 .grid-cell.selected-cell {
   background: rgba(66,133,244,0.12);
 }
 .grid-cell.selection-focus-cell {
   box-shadow: inset 0 0 0 2px rgba(41,98,255,0.25);
 }
+
 .grid-cell.composing-cell {
   background: rgba(255,193,7,0.2);
 }
@@ -360,6 +373,7 @@ html, body {
   border-bottom: 2px solid #f57c00;
   padding-bottom: 1px;
 }
+
 @keyframes blink {
   0%,100% { opacity:1; }
   50% { opacity:0; }
@@ -390,7 +404,8 @@ html, body {
 /* ===== TOAST ===== */
 .toast {
   position: fixed;
-  bottom: 30px; left: 50%;
+  bottom: 30px;
+  left: 50%;
   transform: translateX(-50%);
   background: rgba(0,0,0,0.82);
   color: #fff;
@@ -415,50 +430,64 @@ html, body {
   html, body {
     width: auto !important;
     height: auto !important;
+    min-height: 0 !important;
     overflow: visible !important;
     background: #fff !important;
     margin: 0 !important;
     padding: 0 !important;
   }
 
-  .toolbar, .toast, #hiddenInput {
+  body > :not(.page-container) {
     display: none !important;
   }
 
   .page-container {
     position: static !important;
+    inset: auto !important;
     padding: 0 !important;
+    margin: 0 !important;
     display: block !important;
     width: auto !important;
     height: auto !important;
+    min-height: 0 !important;
     overflow: visible !important;
+    background: #fff !important;
   }
 
   .zoom-wrapper {
     transform: none !important;
+    transition: none !important;
     display: block !important;
     width: auto !important;
     height: auto !important;
+    min-height: 0 !important;
     overflow: visible !important;
     gap: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   .page {
+    display: block !important;
+    position: relative !important;
     width: 210mm !important;
     height: 297mm !important;
+    min-height: 297mm !important;
     margin: 0 !important;
     padding: 60px 47px !important;
     box-shadow: none !important;
     overflow: hidden !important;
-    page-break-after: always;
-    break-after: page;
+    break-after: auto !important;
+    page-break-after: auto !important;
+    break-inside: avoid-page !important;
+    page-break-inside: avoid !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
 
-  .page:last-child {
-    page-break-after: auto;
-    break-after: auto;
+  .page + .page {
+    break-before: page !important;
+    page-break-before: always !important;
   }
 
   .page-header {
@@ -476,6 +505,26 @@ html, body {
     display: inline !important;
     flex: none !important;
     text-align: inherit !important;
+  }
+
+  .grid-cell.cursor-cell,
+  .grid-cell.composing-cell,
+  .grid-cell.selected-cell,
+  .grid-cell.selection-focus-cell,
+  .grid-cell.composing-cursor-cell {
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .grid-cell.cursor-cell::after,
+  .grid-cell.composing-cursor-cell::after {
+    display: none !important;
+    content: none !important;
+  }
+
+  .grid-cell.composing-cell .cell-char {
+    border-bottom: none !important;
+    padding-bottom: 0 !important;
   }
 }
 </style>
@@ -538,6 +587,9 @@ html, body {
 
 <script>
 const COLS = 20, ROWS = 20;
+const SENTINEL = '\u200B';
+const SENTINEL_LEN = SENTINEL.length;
+const COMPOSITION_VISUAL_HOLD_MS = 120;
 
 let state = {
   chars: [],
@@ -546,13 +598,20 @@ let state = {
   selectionEnd: 0,
   font: "'Noto Serif KR', serif",
   color: '#c0392b',
-  composing: false
+
+  // 실제 composition 이벤트 상태
+  nativeComposing: false,
+
+  // 화면 표시용 composition 상태
+  composing: false,
+  composingCellIdx: -1
 };
 
 let zoomState = { mode: 'width', scale: 1.0 };
-
-const SENTINEL = '\u200B';
-const SENTINEL_LEN = SENTINEL.length;
+let compositionHoldTimer = null;
+let selectionSyncRAF = 0;
+let isPrinting = false;
+let printSnapshot = null;
 
 const scroller = document.getElementById('pageContainer');
 const input    = document.getElementById('hiddenInput');
@@ -625,9 +684,7 @@ function deleteRangeInState(start, end) {
 }
 
 function deleteBackwardInState() {
-  if (hasSelection()) {
-    return deleteRangeInState(state.selectionStart, state.selectionEnd);
-  }
+  if (hasSelection()) return deleteRangeInState(state.selectionStart, state.selectionEnd);
   if (state.cursorPos <= 0) return false;
   state.chars.splice(state.cursorPos - 1, 1);
   setLogicalSelection(state.cursorPos - 1, state.cursorPos - 1);
@@ -635,9 +692,7 @@ function deleteBackwardInState() {
 }
 
 function deleteForwardInState() {
-  if (hasSelection()) {
-    return deleteRangeInState(state.selectionStart, state.selectionEnd);
-  }
+  if (hasSelection()) return deleteRangeInState(state.selectionStart, state.selectionEnd);
   if (state.cursorPos >= state.chars.length) return false;
   state.chars.splice(state.cursorPos, 1);
   setLogicalSelection(state.cursorPos, state.cursorPos);
@@ -645,9 +700,8 @@ function deleteForwardInState() {
 }
 
 function deleteWordBackwardInState() {
-  if (hasSelection()) {
-    return deleteRangeInState(state.selectionStart, state.selectionEnd);
-  }
+  if (hasSelection()) return deleteRangeInState(state.selectionStart, state.selectionEnd);
+
   const text = state.chars.join('');
   let i = state.cursorPos;
   if (i <= 0) return false;
@@ -659,9 +713,8 @@ function deleteWordBackwardInState() {
 }
 
 function deleteWordForwardInState() {
-  if (hasSelection()) {
-    return deleteRangeInState(state.selectionStart, state.selectionEnd);
-  }
+  if (hasSelection()) return deleteRangeInState(state.selectionStart, state.selectionEnd);
+
   const text = state.chars.join('');
   let i = state.cursorPos;
   if (i >= text.length) return false;
@@ -677,6 +730,50 @@ function afterStateEdit(save = true) {
   syncInputFromState();
   if (save) saveToURL();
   scrollToCursor();
+}
+
+/* ===== composition 시각 처리 ===== */
+function cancelCompositionHold() {
+  if (compositionHoldTimer !== null) {
+    clearTimeout(compositionHoldTimer);
+    compositionHoldTimer = null;
+  }
+}
+
+function clearCompositionVisual() {
+  cancelCompositionHold();
+  state.composing = false;
+  state.composingCellIdx = -1;
+}
+
+function updateComposingCellFromState() {
+  if (state.chars.length === 0) {
+    state.composingCellIdx = -1;
+    return;
+  }
+  const end = clamp(Math.max(state.selectionStart, state.selectionEnd), 0, state.chars.length);
+  state.composingCellIdx = clamp(end - 1, 0, state.chars.length - 1);
+}
+
+function resumeCompositionVisualFromHold() {
+  if (compositionHoldTimer === null) return false;
+  clearTimeout(compositionHoldTimer);
+  compositionHoldTimer = null;
+  state.composing = true;
+  return true;
+}
+
+function holdCompositionVisual() {
+  cancelCompositionHold();
+  state.composing = true;
+  updateComposingCellFromState();
+
+  compositionHoldTimer = setTimeout(() => {
+    compositionHoldTimer = null;
+    state.composing = false;
+    state.composingCellIdx = -1;
+    render();
+  }, COMPOSITION_VISUAL_HOLD_MS);
 }
 
 /* ===== hidden textarea 동기화 ===== */
@@ -737,6 +834,12 @@ function syncStateFromInput() {
 
 function syncFromNativeInput(save = true) {
   syncStateFromInput();
+
+  if (state.nativeComposing) {
+    state.composing = true;
+    updateComposingCellFromState();
+  }
+
   render();
   if (save) saveToURL();
   scrollToCursor();
@@ -876,7 +979,7 @@ function buildLayout() {
 function render() {
   const layout  = buildLayout();
   const wrapper = document.getElementById('zoomWrapper');
-  const selectionActive = hasSelection();
+  const selectionActive = !isPrinting && hasSelection();
 
   while (wrapper.children.length < layout.pages.length) wrapper.appendChild(createPage(wrapper.children.length));
   while (wrapper.children.length > layout.pages.length) wrapper.removeChild(wrapper.lastChild);
@@ -901,7 +1004,7 @@ function render() {
         cellEl.dataset.logicalIdx = cellData.logicalIdx;
 
         let isCursor = false;
-        if (!selectionActive && !foundCursor) {
+        if (!isPrinting && !selectionActive && !state.composing && !foundCursor) {
           if (cellData.dispIdx === layout.cursorDisplayIdx) {
             isCursor = true;
             foundCursor = true;
@@ -911,11 +1014,12 @@ function render() {
           }
         }
 
-        const isComposingChar =
+        const isComposingTarget =
+          !isPrinting &&
           state.composing &&
-          state.cursorPos > 0 &&
+          state.composingCellIdx >= 0 &&
           !cellData.empty &&
-          cellData.logicalIdx === state.cursorPos - 1;
+          cellData.logicalIdx === state.composingCellIdx;
 
         const isSelected =
           selectionActive &&
@@ -929,10 +1033,13 @@ function render() {
           cellData.logicalIdx === state.selectionEnd - 1;
 
         cellEl.className = 'grid-cell';
-        if (isCursor && !state.composing && !selectionActive) cellEl.classList.add('cursor-cell');
-        if (isSelected)                                       cellEl.classList.add('selected-cell');
-        if (isSelectionFocus)                                 cellEl.classList.add('selection-focus-cell');
-        if (isComposingChar)                                  cellEl.classList.add('composing-cell');
+        if (isCursor)            cellEl.classList.add('cursor-cell');
+        if (isSelected)          cellEl.classList.add('selected-cell');
+        if (isSelectionFocus)    cellEl.classList.add('selection-focus-cell');
+        if (isComposingTarget) {
+          cellEl.classList.add('composing-cell');
+          cellEl.classList.add('composing-cursor-cell');
+        }
       }
 
       let overflowEl = rowEl.querySelector('.overflow-cell');
@@ -994,7 +1101,8 @@ document.addEventListener('touchend', (e) => {
     if (cell) {
       const idx = parseInt(cell.dataset.logicalIdx, 10);
       if (!isNaN(idx)) {
-        state.composing = false;
+        state.nativeComposing = false;
+        clearCompositionVisual();
         setLogicalSelection(idx, idx, { renderView: true, syncInput: true });
       }
     }
@@ -1011,12 +1119,14 @@ document.addEventListener('pointerdown', (e) => {
     e.preventDefault();
     const idx = parseInt(cell.dataset.logicalIdx, 10);
     if (!isNaN(idx)) {
-      state.composing = false;
+      state.nativeComposing = false;
+      clearCompositionVisual();
       setLogicalSelection(idx, idx, { renderView: true, syncInput: true });
     }
   } else if (!e.target.closest('.page-container')) {
     return;
   }
+
   focusInput();
 });
 
@@ -1030,11 +1140,11 @@ document.addEventListener('click', (e) => {
   }
 });
 
-/* ===== IME / 입력 / 선택 범위 안정화 ===== */
-let selectionSyncRAF = 0;
-
+/* ===== 선택 범위 동기화 ===== */
 function scheduleSelectionSync(scroll = false) {
+  if (isPrinting) return;
   if (selectionSyncRAF) cancelAnimationFrame(selectionSyncRAF);
+
   selectionSyncRAF = requestAnimationFrame(() => {
     selectionSyncRAF = 0;
     if (document.activeElement !== input) return;
@@ -1044,13 +1154,15 @@ function scheduleSelectionSync(scroll = false) {
   });
 }
 
+/* ===== IME / 입력 / 선택 범위 안정화 ===== */
 input.addEventListener('focus', () => {
   ensureSentinel();
   syncInputFromState();
 });
 
 input.addEventListener('blur', () => {
-  state.composing = false;
+  state.nativeComposing = false;
+  clearCompositionVisual();
   render();
 });
 
@@ -1069,8 +1181,10 @@ input.addEventListener('beforeinput', (e) => {
 
   syncStateFromInput();
 
-  if (state.composing || e.isComposing) return;
+  if (state.nativeComposing || e.isComposing) return;
   if (!e.cancelable) return;
+
+  clearCompositionVisual();
 
   let changed = false;
 
@@ -1111,26 +1225,38 @@ input.addEventListener('beforeinput', (e) => {
 });
 
 input.addEventListener('paste', (e) => {
-  if (state.composing) return;
+  if (state.nativeComposing) return;
+
   const pasted = e.clipboardData?.getData('text/plain');
   if (typeof pasted !== 'string' || pasted.length === 0) return;
 
   e.preventDefault();
   syncStateFromInput();
+  clearCompositionVisual();
   replaceRangeInState(state.selectionStart, state.selectionEnd, pasted);
   afterStateEdit(true);
 });
 
 input.addEventListener('cut', () => {
+  clearCompositionVisual();
   requestAnimationFrame(() => {
     syncFromNativeInput(true);
   });
 });
 
 input.addEventListener('compositionstart', () => {
+  const resumed = resumeCompositionVisualFromHold();
+  state.nativeComposing = true;
   state.composing = true;
+
+  if (!resumed) {
+    state.composingCellIdx = -1;
+  }
+
   requestAnimationFrame(() => {
+    if (!state.nativeComposing) return;
     syncStateFromInput();
+    if (state.chars.length > 0) updateComposingCellFromState();
     render();
     scrollToCursor();
   });
@@ -1138,21 +1264,31 @@ input.addEventListener('compositionstart', () => {
 
 input.addEventListener('compositionupdate', () => {
   requestAnimationFrame(() => {
+    if (!state.nativeComposing) return;
     syncStateFromInput();
+    state.composing = true;
+    updateComposingCellFromState();
     render();
     scrollToCursor();
   });
 });
 
 input.addEventListener('compositionend', () => {
-  state.composing = false;
+  state.nativeComposing = false;
+  state.composing = true;
+
   requestAnimationFrame(() => {
-    syncFromNativeInput(true);
+    syncStateFromInput();
+    if (state.chars.length > 0) updateComposingCellFromState();
+    render();
+    saveToURL();
+    scrollToCursor();
+    holdCompositionVisual();
   });
 });
 
 input.addEventListener('input', () => {
-  syncFromNativeInput(!state.composing);
+  syncFromNativeInput(!state.nativeComposing);
 });
 
 input.addEventListener('keydown', (e) => {
@@ -1164,6 +1300,7 @@ input.addEventListener('keydown', (e) => {
 
   if ((e.metaKey || e.ctrlKey) && !e.altKey && lowerKey === 'a') {
     e.preventDefault();
+    clearCompositionVisual();
     setLogicalSelection(0, state.chars.length, {
       renderView: true,
       syncInput: true,
@@ -1172,7 +1309,8 @@ input.addEventListener('keydown', (e) => {
     return;
   }
 
-  if (navKeys.has(e.key)) {
+  if (navKeys.has(e.key) && !state.nativeComposing) {
+    clearCompositionVisual();
     requestAnimationFrame(() => {
       syncStateFromInput();
       render();
@@ -1181,21 +1319,24 @@ input.addEventListener('keydown', (e) => {
   }
 
   if (supportsBeforeInput) return;
-  if (state.composing) return;
+  if (state.nativeComposing) return;
 
   let changed = false;
 
   if (e.key === 'Backspace') {
     e.preventDefault();
     syncStateFromInput();
+    clearCompositionVisual();
     changed = deleteBackwardInState();
   } else if (e.key === 'Delete') {
     e.preventDefault();
     syncStateFromInput();
+    clearCompositionVisual();
     changed = deleteForwardInState();
   } else if (e.key === 'Enter') {
     e.preventDefault();
     syncStateFromInput();
+    clearCompositionVisual();
     changed = replaceRangeInState(state.selectionStart, state.selectionEnd, '\n');
   }
 
@@ -1209,6 +1350,7 @@ input.addEventListener('keyup', (e) => {
     'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
     'Home', 'End', 'PageUp', 'PageDown', 'Shift'
   ]);
+
   if (keys.has(e.key)) {
     scheduleSelectionSync(true);
   }
@@ -1216,7 +1358,7 @@ input.addEventListener('keyup', (e) => {
 
 function scrollToCursor() {
   requestAnimationFrame(() => {
-    let el = document.querySelector('.cursor-cell, .composing-cell, .selection-focus-cell');
+    let el = document.querySelector('.composing-cursor-cell, .cursor-cell, .selection-focus-cell, .composing-cell');
 
     if (!el) {
       const selected = document.querySelectorAll('.selected-cell');
@@ -1274,16 +1416,15 @@ function setZoom(action) {
 }
 
 function applyZoom() {
-  document.getElementById('zoomWrapper').style.transform =
-    `scale(${zoomState.scale})`;
-  document.getElementById('zoomLabel').textContent =
-    Math.round(zoomState.scale * 100) + '%';
+  document.getElementById('zoomWrapper').style.transform = `scale(${zoomState.scale})`;
+  document.getElementById('zoomLabel').textContent = Math.round(zoomState.scale * 100) + '%';
 }
 
 window.addEventListener('resize', () => {
   if (zoomState.mode === 'width' || zoomState.mode === 'height') setZoom(zoomState.mode);
   updateToolbarMode();
 });
+
 if (window.visualViewport) {
   window.visualViewport.addEventListener('resize', () => {
     if (zoomState.mode === 'width' || zoomState.mode === 'height') setZoom(zoomState.mode);
@@ -1295,12 +1436,14 @@ function getMenuNaturalWidth() {
   const toolbarMenu = document.getElementById('toolbarMenu');
   const items       = Array.from(toolbarMenu.children);
   let total = 0;
+
   items.forEach(el => {
     const style = window.getComputedStyle(el);
     total += el.offsetWidth
            + parseFloat(style.marginLeft  || 0)
            + parseFloat(style.marginRight || 0);
   });
+
   const gap = parseFloat(
     window.getComputedStyle(toolbarMenu).columnGap ||
     window.getComputedStyle(toolbarMenu).gap || 0
@@ -1313,10 +1456,13 @@ function updateToolbarMode() {
   const toolbar     = document.getElementById('toolbar');
   const toolbarMenu = document.getElementById('toolbarMenu');
   const left        = toolbar.querySelector('.toolbar-left');
+
   toolbar.classList.remove('compact');
   toolbarMenu.classList.remove('open');
+
   const availableWidth = toolbar.clientWidth - 24;
   const neededWidth    = left.offsetWidth + getMenuNaturalWidth() + 24;
+
   if (neededWidth > availableWidth) toolbar.classList.add('compact');
 }
 
@@ -1333,6 +1479,67 @@ function closeMenuOnCompact() {
   }
 }
 
+/* ===== 인쇄 ===== */
+function prepareForPrint() {
+  if (isPrinting) return;
+
+  printSnapshot = {
+    cursorPos: state.cursorPos,
+    selectionStart: state.selectionStart,
+    selectionEnd: state.selectionEnd
+  };
+
+  state.nativeComposing = false;
+  clearCompositionVisual();
+
+  isPrinting = true;
+  document.body.classList.add('printing');
+
+  try { input.blur(); } catch (e) {}
+  render();
+}
+
+function cleanupAfterPrint() {
+  if (!isPrinting) return;
+
+  isPrinting = false;
+  document.body.classList.remove('printing');
+
+  if (printSnapshot) {
+    state.cursorPos = printSnapshot.cursorPos;
+    state.selectionStart = printSnapshot.selectionStart;
+    state.selectionEnd = printSnapshot.selectionEnd;
+    printSnapshot = null;
+  }
+
+  render();
+  syncInputFromState();
+}
+
+window.addEventListener('beforeprint', prepareForPrint);
+window.addEventListener('afterprint', cleanupAfterPrint);
+
+if (window.matchMedia) {
+  const mql = window.matchMedia('print');
+  if (mql.addEventListener) {
+    mql.addEventListener('change', (e) => {
+      if (!e.matches) cleanupAfterPrint();
+    });
+  } else if (mql.addListener) {
+    mql.addListener((e) => {
+      if (!e.matches) cleanupAfterPrint();
+    });
+  }
+}
+
+window.addEventListener('focus', () => {
+  if (isPrinting) setTimeout(cleanupAfterPrint, 0);
+});
+
+window.addEventListener('pageshow', () => {
+  if (isPrinting) cleanupAfterPrint();
+});
+
 /* ===== 액션 ===== */
 function newDocument() {
   if (confirm('모든 내용이 지워집니다. 새로 시작할까요?')) {
@@ -1340,7 +1547,8 @@ function newDocument() {
     state.cursorPos = 0;
     state.selectionStart = 0;
     state.selectionEnd = 0;
-    state.composing = false;
+    state.nativeComposing = false;
+    clearCompositionVisual();
     render();
     saveToURL();
     syncInputFromState();
@@ -1366,7 +1574,8 @@ function changeColor(btn) {
 
 function doPrint() {
   closeMenuOnCompact();
-  setTimeout(() => window.print(), 100);
+  prepareForPrint();
+  setTimeout(() => window.print(), 150);
 }
 
 function copyURL() {

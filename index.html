@@ -279,8 +279,7 @@ html, body {
   background: #fff;
   box-shadow: 0 4px 20px rgba(0,0,0,0.15);
   position: relative;
-  width: 794px;
-  height: 1123px;
+  width: 794px; height: 1123px;
   padding: 60px 47px;
   flex-shrink: 0;
 }
@@ -291,9 +290,7 @@ html, body {
   align-items: baseline;
   padding: 0 4px 10px 0;
   font-family: 'Noto Serif KR', serif;
-  color: #333;
-  font-size: 14px;
-  gap: 6px;
+  color: #333; font-size: 14px; gap: 6px;
 }
 .page-header .page-no-label { font-size: 12px; color: #555; letter-spacing: 1px; }
 .page-header .page-no { font-size: 24px; font-weight: 700; color: #333; }
@@ -312,20 +309,17 @@ html, body {
   position: relative;
 }
 .grid-cell {
-  width: var(--cell-size);
-  height: var(--cell-size);
+  width: var(--cell-size); height: var(--cell-size);
   flex: 0 0 var(--cell-size);
   border-right: 1px solid var(--grid-color);
   box-sizing: border-box;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: center; justify-content: center;
   font-size: var(--font-size);
   font-family: var(--font-family);
   cursor: text;
   position: relative;
-  line-height: 1;
-  color: #111;
+  line-height: 1; color: #111;
   user-select: none;
   -webkit-user-select: none;
   touch-action: manipulation;
@@ -336,44 +330,37 @@ html, body {
   position: absolute;
   right: calc(var(--cell-size) * -1);
   top: 0;
-  width: var(--cell-size);
-  height: var(--cell-size);
+  width: var(--cell-size); height: var(--cell-size);
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: center; justify-content: center;
   font-size: var(--font-size);
   color: #111;
   pointer-events: none;
 }
 
-.grid-cell.cursor-cell { background: rgba(66,133,244,0.15); }
-.grid-cell.cursor-cell::after,
-.grid-cell.composing-cursor-cell::after {
+/* 커서 배경색의 투명도를 낮춰 깜빡임에 대한 피로도를 줄입니다. */
+.grid-cell.cursor-cell { background: rgba(66,133,244,0.05); }
+.grid-cell.cursor-cell::after {
   content: '';
   position: absolute;
-  left: 2px;
-  top: 15%;
-  bottom: 15%;
+  left: 2px; top: 15%; bottom: 15%;
   width: 2px;
   background: #2962ff;
   animation: blink 1s step-end infinite;
 }
-
 .grid-cell.selected-cell {
   background: rgba(66,133,244,0.12);
 }
 .grid-cell.selection-focus-cell {
   box-shadow: inset 0 0 0 2px rgba(41,98,255,0.25);
 }
-
 .grid-cell.composing-cell {
-  background: rgba(255,193,7,0.2);
+  background: rgba(255,193,7,0.15); /* 조합 중 배경도 눈에 편안하게 조정 */
 }
 .grid-cell.composing-cell .cell-char {
   border-bottom: 2px solid #f57c00;
   padding-bottom: 1px;
 }
-
 @keyframes blink {
   0%,100% { opacity:1; }
   50% { opacity:0; }
@@ -404,8 +391,7 @@ html, body {
 /* ===== TOAST ===== */
 .toast {
   position: fixed;
-  bottom: 30px;
-  left: 50%;
+  bottom: 30px; left: 50%;
   transform: translateX(-50%);
   background: rgba(0,0,0,0.82);
   color: #fff;
@@ -430,64 +416,55 @@ html, body {
   html, body {
     width: auto !important;
     height: auto !important;
-    min-height: 0 !important;
     overflow: visible !important;
     background: #fff !important;
     margin: 0 !important;
     padding: 0 !important;
   }
 
-  body > :not(.page-container) {
+  .toolbar, .toast, #hiddenInput {
     display: none !important;
   }
 
   .page-container {
     position: static !important;
-    inset: auto !important;
     padding: 0 !important;
-    margin: 0 !important;
     display: block !important;
     width: auto !important;
     height: auto !important;
-    min-height: 0 !important;
     overflow: visible !important;
-    background: #fff !important;
   }
 
   .zoom-wrapper {
     transform: none !important;
-    transition: none !important;
     display: block !important;
     width: auto !important;
     height: auto !important;
-    min-height: 0 !important;
     overflow: visible !important;
     gap: 0 !important;
-    margin: 0 !important;
     padding: 0 !important;
+    margin: 0 !important;
   }
 
+  /* 인쇄 시 여백 오버플로우로 인한 빈 페이지 생성 방지를 위해 높이를 살짝 줄임 */
   .page {
-    display: block !important;
-    position: relative !important;
     width: 210mm !important;
-    height: 297mm !important;
-    min-height: 297mm !important;
-    margin: 0 !important;
+    height: 296mm !important;
+    margin: 0 auto !important;
     padding: 60px 47px !important;
     box-shadow: none !important;
     overflow: hidden !important;
-    break-after: auto !important;
-    page-break-after: auto !important;
-    break-inside: avoid-page !important;
-    page-break-inside: avoid !important;
+    page-break-after: always;
+    break-after: page;
+    page-break-inside: avoid;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+    box-sizing: border-box !important;
   }
 
-  .page + .page {
-    break-before: page !important;
-    page-break-before: always !important;
+  .page:last-child {
+    page-break-after: auto;
+    break-after: auto;
   }
 
   .page-header {
@@ -505,26 +482,6 @@ html, body {
     display: inline !important;
     flex: none !important;
     text-align: inherit !important;
-  }
-
-  .grid-cell.cursor-cell,
-  .grid-cell.composing-cell,
-  .grid-cell.selected-cell,
-  .grid-cell.selection-focus-cell,
-  .grid-cell.composing-cursor-cell {
-    background: transparent !important;
-    box-shadow: none !important;
-  }
-
-  .grid-cell.cursor-cell::after,
-  .grid-cell.composing-cursor-cell::after {
-    display: none !important;
-    content: none !important;
-  }
-
-  .grid-cell.composing-cell .cell-char {
-    border-bottom: none !important;
-    padding-bottom: 0 !important;
   }
 }
 </style>
@@ -587,9 +544,6 @@ html, body {
 
 <script>
 const COLS = 20, ROWS = 20;
-const SENTINEL = '\u200B';
-const SENTINEL_LEN = SENTINEL.length;
-const COMPOSITION_VISUAL_HOLD_MS = 120;
 
 let state = {
   chars: [],
@@ -598,20 +552,13 @@ let state = {
   selectionEnd: 0,
   font: "'Noto Serif KR', serif",
   color: '#c0392b',
-
-  // 실제 composition 이벤트 상태
-  nativeComposing: false,
-
-  // 화면 표시용 composition 상태
-  composing: false,
-  composingCellIdx: -1
+  composing: false
 };
 
 let zoomState = { mode: 'width', scale: 1.0 };
-let compositionHoldTimer = null;
-let selectionSyncRAF = 0;
-let isPrinting = false;
-let printSnapshot = null;
+
+const SENTINEL = '\u200B';
+const SENTINEL_LEN = SENTINEL.length;
 
 const scroller = document.getElementById('pageContainer');
 const input    = document.getElementById('hiddenInput');
@@ -684,7 +631,9 @@ function deleteRangeInState(start, end) {
 }
 
 function deleteBackwardInState() {
-  if (hasSelection()) return deleteRangeInState(state.selectionStart, state.selectionEnd);
+  if (hasSelection()) {
+    return deleteRangeInState(state.selectionStart, state.selectionEnd);
+  }
   if (state.cursorPos <= 0) return false;
   state.chars.splice(state.cursorPos - 1, 1);
   setLogicalSelection(state.cursorPos - 1, state.cursorPos - 1);
@@ -692,7 +641,9 @@ function deleteBackwardInState() {
 }
 
 function deleteForwardInState() {
-  if (hasSelection()) return deleteRangeInState(state.selectionStart, state.selectionEnd);
+  if (hasSelection()) {
+    return deleteRangeInState(state.selectionStart, state.selectionEnd);
+  }
   if (state.cursorPos >= state.chars.length) return false;
   state.chars.splice(state.cursorPos, 1);
   setLogicalSelection(state.cursorPos, state.cursorPos);
@@ -700,8 +651,9 @@ function deleteForwardInState() {
 }
 
 function deleteWordBackwardInState() {
-  if (hasSelection()) return deleteRangeInState(state.selectionStart, state.selectionEnd);
-
+  if (hasSelection()) {
+    return deleteRangeInState(state.selectionStart, state.selectionEnd);
+  }
   const text = state.chars.join('');
   let i = state.cursorPos;
   if (i <= 0) return false;
@@ -713,8 +665,9 @@ function deleteWordBackwardInState() {
 }
 
 function deleteWordForwardInState() {
-  if (hasSelection()) return deleteRangeInState(state.selectionStart, state.selectionEnd);
-
+  if (hasSelection()) {
+    return deleteRangeInState(state.selectionStart, state.selectionEnd);
+  }
   const text = state.chars.join('');
   let i = state.cursorPos;
   if (i >= text.length) return false;
@@ -730,50 +683,6 @@ function afterStateEdit(save = true) {
   syncInputFromState();
   if (save) saveToURL();
   scrollToCursor();
-}
-
-/* ===== composition 시각 처리 ===== */
-function cancelCompositionHold() {
-  if (compositionHoldTimer !== null) {
-    clearTimeout(compositionHoldTimer);
-    compositionHoldTimer = null;
-  }
-}
-
-function clearCompositionVisual() {
-  cancelCompositionHold();
-  state.composing = false;
-  state.composingCellIdx = -1;
-}
-
-function updateComposingCellFromState() {
-  if (state.chars.length === 0) {
-    state.composingCellIdx = -1;
-    return;
-  }
-  const end = clamp(Math.max(state.selectionStart, state.selectionEnd), 0, state.chars.length);
-  state.composingCellIdx = clamp(end - 1, 0, state.chars.length - 1);
-}
-
-function resumeCompositionVisualFromHold() {
-  if (compositionHoldTimer === null) return false;
-  clearTimeout(compositionHoldTimer);
-  compositionHoldTimer = null;
-  state.composing = true;
-  return true;
-}
-
-function holdCompositionVisual() {
-  cancelCompositionHold();
-  state.composing = true;
-  updateComposingCellFromState();
-
-  compositionHoldTimer = setTimeout(() => {
-    compositionHoldTimer = null;
-    state.composing = false;
-    state.composingCellIdx = -1;
-    render();
-  }, COMPOSITION_VISUAL_HOLD_MS);
 }
 
 /* ===== hidden textarea 동기화 ===== */
@@ -834,12 +743,6 @@ function syncStateFromInput() {
 
 function syncFromNativeInput(save = true) {
   syncStateFromInput();
-
-  if (state.nativeComposing) {
-    state.composing = true;
-    updateComposingCellFromState();
-  }
-
   render();
   if (save) saveToURL();
   scrollToCursor();
@@ -979,12 +882,16 @@ function buildLayout() {
 function render() {
   const layout  = buildLayout();
   const wrapper = document.getElementById('zoomWrapper');
-  const selectionActive = !isPrinting && hasSelection();
+  const selectionActive = hasSelection();
 
   while (wrapper.children.length < layout.pages.length) wrapper.appendChild(createPage(wrapper.children.length));
   while (wrapper.children.length > layout.pages.length) wrapper.removeChild(wrapper.lastChild);
 
   let foundCursor = false;
+
+  // iOS의 한글 낱자 입력 시 조합이 풀리는 현상을 시각적으로 보완하기 위한 확인
+  const prevChar = state.cursorPos > 0 ? state.chars[state.cursorPos - 1] : '';
+  const isPrevCharJamo = /^[ㄱ-ㅎㅏ-ㅣ]$/.test(prevChar);
 
   for (let pIdx = 0; pIdx < layout.pages.length; pIdx++) {
     const pageData = layout.pages[pIdx];
@@ -1003,9 +910,17 @@ function render() {
         cellEl.querySelector('.cell-char').textContent = cellData.char;
         cellEl.dataset.logicalIdx = cellData.logicalIdx;
 
+        // 초성 입력 후 조합 상태 유지 효과를 위한 판단 로직
+        const isComposingChar =
+          (state.composing && state.cursorPos > 0 && !cellData.empty && cellData.logicalIdx === state.cursorPos - 1) ||
+          (isPrevCharJamo && !cellData.empty && cellData.logicalIdx === state.cursorPos - 1);
+
         let isCursor = false;
-        if (!isPrinting && !selectionActive && !state.composing && !foundCursor) {
-          if (cellData.dispIdx === layout.cursorDisplayIdx) {
+        if (!selectionActive && !foundCursor) {
+          if (isComposingChar) {
+            // 한글 조합 중일 때는 이후 빈 셀에 파란 커서를 그리지 않습니다.
+            foundCursor = true;
+          } else if (cellData.dispIdx === layout.cursorDisplayIdx) {
             isCursor = true;
             foundCursor = true;
           } else if (cellData.empty && cellData.logicalIdx >= state.cursorPos) {
@@ -1013,13 +928,6 @@ function render() {
             foundCursor = true;
           }
         }
-
-        const isComposingTarget =
-          !isPrinting &&
-          state.composing &&
-          state.composingCellIdx >= 0 &&
-          !cellData.empty &&
-          cellData.logicalIdx === state.composingCellIdx;
 
         const isSelected =
           selectionActive &&
@@ -1033,13 +941,10 @@ function render() {
           cellData.logicalIdx === state.selectionEnd - 1;
 
         cellEl.className = 'grid-cell';
-        if (isCursor)            cellEl.classList.add('cursor-cell');
-        if (isSelected)          cellEl.classList.add('selected-cell');
-        if (isSelectionFocus)    cellEl.classList.add('selection-focus-cell');
-        if (isComposingTarget) {
-          cellEl.classList.add('composing-cell');
-          cellEl.classList.add('composing-cursor-cell');
-        }
+        if (isCursor && !selectionActive) cellEl.classList.add('cursor-cell');
+        if (isSelected)                   cellEl.classList.add('selected-cell');
+        if (isSelectionFocus)             cellEl.classList.add('selection-focus-cell');
+        if (isComposingChar)              cellEl.classList.add('composing-cell');
       }
 
       let overflowEl = rowEl.querySelector('.overflow-cell');
@@ -1101,8 +1006,7 @@ document.addEventListener('touchend', (e) => {
     if (cell) {
       const idx = parseInt(cell.dataset.logicalIdx, 10);
       if (!isNaN(idx)) {
-        state.nativeComposing = false;
-        clearCompositionVisual();
+        state.composing = false;
         setLogicalSelection(idx, idx, { renderView: true, syncInput: true });
       }
     }
@@ -1119,14 +1023,12 @@ document.addEventListener('pointerdown', (e) => {
     e.preventDefault();
     const idx = parseInt(cell.dataset.logicalIdx, 10);
     if (!isNaN(idx)) {
-      state.nativeComposing = false;
-      clearCompositionVisual();
+      state.composing = false;
       setLogicalSelection(idx, idx, { renderView: true, syncInput: true });
     }
   } else if (!e.target.closest('.page-container')) {
     return;
   }
-
   focusInput();
 });
 
@@ -1140,11 +1042,11 @@ document.addEventListener('click', (e) => {
   }
 });
 
-/* ===== 선택 범위 동기화 ===== */
-function scheduleSelectionSync(scroll = false) {
-  if (isPrinting) return;
-  if (selectionSyncRAF) cancelAnimationFrame(selectionSyncRAF);
+/* ===== IME / 입력 / 선택 범위 안정화 ===== */
+let selectionSyncRAF = 0;
 
+function scheduleSelectionSync(scroll = false) {
+  if (selectionSyncRAF) cancelAnimationFrame(selectionSyncRAF);
   selectionSyncRAF = requestAnimationFrame(() => {
     selectionSyncRAF = 0;
     if (document.activeElement !== input) return;
@@ -1154,15 +1056,13 @@ function scheduleSelectionSync(scroll = false) {
   });
 }
 
-/* ===== IME / 입력 / 선택 범위 안정화 ===== */
 input.addEventListener('focus', () => {
   ensureSentinel();
   syncInputFromState();
 });
 
 input.addEventListener('blur', () => {
-  state.nativeComposing = false;
-  clearCompositionVisual();
+  state.composing = false;
   render();
 });
 
@@ -1181,10 +1081,8 @@ input.addEventListener('beforeinput', (e) => {
 
   syncStateFromInput();
 
-  if (state.nativeComposing || e.isComposing) return;
+  if (state.composing || e.isComposing) return;
   if (!e.cancelable) return;
-
-  clearCompositionVisual();
 
   let changed = false;
 
@@ -1225,38 +1123,26 @@ input.addEventListener('beforeinput', (e) => {
 });
 
 input.addEventListener('paste', (e) => {
-  if (state.nativeComposing) return;
-
+  if (state.composing) return;
   const pasted = e.clipboardData?.getData('text/plain');
   if (typeof pasted !== 'string' || pasted.length === 0) return;
 
   e.preventDefault();
   syncStateFromInput();
-  clearCompositionVisual();
   replaceRangeInState(state.selectionStart, state.selectionEnd, pasted);
   afterStateEdit(true);
 });
 
 input.addEventListener('cut', () => {
-  clearCompositionVisual();
   requestAnimationFrame(() => {
     syncFromNativeInput(true);
   });
 });
 
 input.addEventListener('compositionstart', () => {
-  const resumed = resumeCompositionVisualFromHold();
-  state.nativeComposing = true;
   state.composing = true;
-
-  if (!resumed) {
-    state.composingCellIdx = -1;
-  }
-
   requestAnimationFrame(() => {
-    if (!state.nativeComposing) return;
     syncStateFromInput();
-    if (state.chars.length > 0) updateComposingCellFromState();
     render();
     scrollToCursor();
   });
@@ -1264,31 +1150,21 @@ input.addEventListener('compositionstart', () => {
 
 input.addEventListener('compositionupdate', () => {
   requestAnimationFrame(() => {
-    if (!state.nativeComposing) return;
     syncStateFromInput();
-    state.composing = true;
-    updateComposingCellFromState();
     render();
     scrollToCursor();
   });
 });
 
 input.addEventListener('compositionend', () => {
-  state.nativeComposing = false;
-  state.composing = true;
-
+  state.composing = false;
   requestAnimationFrame(() => {
-    syncStateFromInput();
-    if (state.chars.length > 0) updateComposingCellFromState();
-    render();
-    saveToURL();
-    scrollToCursor();
-    holdCompositionVisual();
+    syncFromNativeInput(true);
   });
 });
 
 input.addEventListener('input', () => {
-  syncFromNativeInput(!state.nativeComposing);
+  syncFromNativeInput(!state.composing);
 });
 
 input.addEventListener('keydown', (e) => {
@@ -1300,7 +1176,6 @@ input.addEventListener('keydown', (e) => {
 
   if ((e.metaKey || e.ctrlKey) && !e.altKey && lowerKey === 'a') {
     e.preventDefault();
-    clearCompositionVisual();
     setLogicalSelection(0, state.chars.length, {
       renderView: true,
       syncInput: true,
@@ -1309,8 +1184,7 @@ input.addEventListener('keydown', (e) => {
     return;
   }
 
-  if (navKeys.has(e.key) && !state.nativeComposing) {
-    clearCompositionVisual();
+  if (navKeys.has(e.key)) {
     requestAnimationFrame(() => {
       syncStateFromInput();
       render();
@@ -1319,24 +1193,21 @@ input.addEventListener('keydown', (e) => {
   }
 
   if (supportsBeforeInput) return;
-  if (state.nativeComposing) return;
+  if (state.composing) return;
 
   let changed = false;
 
   if (e.key === 'Backspace') {
     e.preventDefault();
     syncStateFromInput();
-    clearCompositionVisual();
     changed = deleteBackwardInState();
   } else if (e.key === 'Delete') {
     e.preventDefault();
     syncStateFromInput();
-    clearCompositionVisual();
     changed = deleteForwardInState();
   } else if (e.key === 'Enter') {
     e.preventDefault();
     syncStateFromInput();
-    clearCompositionVisual();
     changed = replaceRangeInState(state.selectionStart, state.selectionEnd, '\n');
   }
 
@@ -1350,7 +1221,6 @@ input.addEventListener('keyup', (e) => {
     'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
     'Home', 'End', 'PageUp', 'PageDown', 'Shift'
   ]);
-
   if (keys.has(e.key)) {
     scheduleSelectionSync(true);
   }
@@ -1358,7 +1228,7 @@ input.addEventListener('keyup', (e) => {
 
 function scrollToCursor() {
   requestAnimationFrame(() => {
-    let el = document.querySelector('.composing-cursor-cell, .cursor-cell, .selection-focus-cell, .composing-cell');
+    let el = document.querySelector('.cursor-cell, .composing-cell, .selection-focus-cell');
 
     if (!el) {
       const selected = document.querySelectorAll('.selected-cell');
@@ -1416,15 +1286,16 @@ function setZoom(action) {
 }
 
 function applyZoom() {
-  document.getElementById('zoomWrapper').style.transform = `scale(${zoomState.scale})`;
-  document.getElementById('zoomLabel').textContent = Math.round(zoomState.scale * 100) + '%';
+  document.getElementById('zoomWrapper').style.transform =
+    `scale(${zoomState.scale})`;
+  document.getElementById('zoomLabel').textContent =
+    Math.round(zoomState.scale * 100) + '%';
 }
 
 window.addEventListener('resize', () => {
   if (zoomState.mode === 'width' || zoomState.mode === 'height') setZoom(zoomState.mode);
   updateToolbarMode();
 });
-
 if (window.visualViewport) {
   window.visualViewport.addEventListener('resize', () => {
     if (zoomState.mode === 'width' || zoomState.mode === 'height') setZoom(zoomState.mode);
@@ -1436,14 +1307,12 @@ function getMenuNaturalWidth() {
   const toolbarMenu = document.getElementById('toolbarMenu');
   const items       = Array.from(toolbarMenu.children);
   let total = 0;
-
   items.forEach(el => {
     const style = window.getComputedStyle(el);
     total += el.offsetWidth
            + parseFloat(style.marginLeft  || 0)
            + parseFloat(style.marginRight || 0);
   });
-
   const gap = parseFloat(
     window.getComputedStyle(toolbarMenu).columnGap ||
     window.getComputedStyle(toolbarMenu).gap || 0
@@ -1456,13 +1325,10 @@ function updateToolbarMode() {
   const toolbar     = document.getElementById('toolbar');
   const toolbarMenu = document.getElementById('toolbarMenu');
   const left        = toolbar.querySelector('.toolbar-left');
-
   toolbar.classList.remove('compact');
   toolbarMenu.classList.remove('open');
-
   const availableWidth = toolbar.clientWidth - 24;
   const neededWidth    = left.offsetWidth + getMenuNaturalWidth() + 24;
-
   if (neededWidth > availableWidth) toolbar.classList.add('compact');
 }
 
@@ -1479,67 +1345,6 @@ function closeMenuOnCompact() {
   }
 }
 
-/* ===== 인쇄 ===== */
-function prepareForPrint() {
-  if (isPrinting) return;
-
-  printSnapshot = {
-    cursorPos: state.cursorPos,
-    selectionStart: state.selectionStart,
-    selectionEnd: state.selectionEnd
-  };
-
-  state.nativeComposing = false;
-  clearCompositionVisual();
-
-  isPrinting = true;
-  document.body.classList.add('printing');
-
-  try { input.blur(); } catch (e) {}
-  render();
-}
-
-function cleanupAfterPrint() {
-  if (!isPrinting) return;
-
-  isPrinting = false;
-  document.body.classList.remove('printing');
-
-  if (printSnapshot) {
-    state.cursorPos = printSnapshot.cursorPos;
-    state.selectionStart = printSnapshot.selectionStart;
-    state.selectionEnd = printSnapshot.selectionEnd;
-    printSnapshot = null;
-  }
-
-  render();
-  syncInputFromState();
-}
-
-window.addEventListener('beforeprint', prepareForPrint);
-window.addEventListener('afterprint', cleanupAfterPrint);
-
-if (window.matchMedia) {
-  const mql = window.matchMedia('print');
-  if (mql.addEventListener) {
-    mql.addEventListener('change', (e) => {
-      if (!e.matches) cleanupAfterPrint();
-    });
-  } else if (mql.addListener) {
-    mql.addListener((e) => {
-      if (!e.matches) cleanupAfterPrint();
-    });
-  }
-}
-
-window.addEventListener('focus', () => {
-  if (isPrinting) setTimeout(cleanupAfterPrint, 0);
-});
-
-window.addEventListener('pageshow', () => {
-  if (isPrinting) cleanupAfterPrint();
-});
-
 /* ===== 액션 ===== */
 function newDocument() {
   if (confirm('모든 내용이 지워집니다. 새로 시작할까요?')) {
@@ -1547,8 +1352,7 @@ function newDocument() {
     state.cursorPos = 0;
     state.selectionStart = 0;
     state.selectionEnd = 0;
-    state.nativeComposing = false;
-    clearCompositionVisual();
+    state.composing = false;
     render();
     saveToURL();
     syncInputFromState();
@@ -1574,8 +1378,7 @@ function changeColor(btn) {
 
 function doPrint() {
   closeMenuOnCompact();
-  prepareForPrint();
-  setTimeout(() => window.print(), 150);
+  setTimeout(() => window.print(), 100);
 }
 
 function copyURL() {

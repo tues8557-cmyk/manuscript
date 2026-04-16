@@ -184,8 +184,7 @@ html, body {
   html, body { width: auto !important; height: auto !important; overflow: visible !important; background: #fff !important; margin: 0 !important; padding: 0 !important; }
   .toolbar, .toast, #hiddenInput { display: none !important; }
   .page-container { position: static !important; padding: 0 !important; display: block !important; width: auto !important; height: auto !important; overflow: visible !important; }
-  .zoom-wrapper { transform: none !important; display: block !important; width: auto !important; height: auto !important; overflow: visible !important; gap: 0 !important; }
-  .page { width: 210mm !important; height: 297mm !important; margin: 0 !important; padding: 60px 47px !important; box-shadow: none !important; overflow: hidden !important; page-break-after: always; break-after: page; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .zoom-wrapper { transform: none !important; display: block !important; width: auto !important; height: auto !important; overflow: visible !important; gap: 0 !important; margin: 0 auto !important; }  .page { width: 210mm !important; height: 297mm !important; margin: 0 !important; padding: 60px 47px !important; box-shadow: none !important; overflow: hidden !important; page-break-after: always; break-after: page; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .page:last-child { page-break-after: auto; break-after: auto; }
   .page-header { display: flex !important; justify-content: flex-end !important; align-items: baseline !important; gap: 6px !important; width: auto !important; text-align: right !important; padding: 0 4px 10px 0 !important; }
   .page-header .page-no-label, .page-header .page-no { width: auto !important; display: inline !important; flex: none !important; text-align: inherit !important; }
@@ -980,24 +979,29 @@ function setZoom(action) {
   applyZoom();
 }
 
-function applyZoom() {
+function applyZoom(isPinching = false) {
   const wrapper = document.getElementById('zoomWrapper');
   wrapper.style.transform = `scale(${zoomState.scale})`;
   document.getElementById('zoomLabel').textContent = Math.round(zoomState.scale * 100) + '%';
-  
+
+  if (isPinching) return; // 핀치 줌 진행 중에는 레이아웃 재계산(Margin)을 생략하여 지지직거림 방지
+
   const container = document.getElementById('pageContainer');
-  const rect = wrapper.getBoundingClientRect();
   
-  // 확대(scale)로 인해 늘어난 크기를 계산하여 오른쪽과 아래에 강제 마진 부여 (스크롤 잘림 방지)
-  const extraWidth = rect.width - wrapper.offsetWidth;
-  const extraHeight = rect.height - wrapper.offsetHeight;
+  // DOM 렌더링 크기(rect)에 의존하지 않고 배율로 물리적 크기 계산 (두 번 클릭 현상 해결)
+  const baseWidth = wrapper.offsetWidth || 794;
+  const baseHeight = wrapper.offsetHeight || 1123;
+  const scaledWidth = baseWidth * zoomState.scale;
+  const scaledHeight = baseHeight * zoomState.scale;
+  
+  const extraWidth = scaledWidth - baseWidth;
+  const extraHeight = scaledHeight - baseHeight;
   
   wrapper.style.marginRight = `${Math.max(0, extraWidth) + 40}px`; 
   wrapper.style.marginBottom = `${Math.max(0, extraHeight) + 60}px`;
   
-  // 화면이 컨테이너보다 작을 때는 자동으로 가운데 정렬, 크면 좌측 20px 여백 적용
-  if (rect.width < container.clientWidth) {
-    wrapper.style.marginLeft = `${(container.clientWidth - rect.width) / 2}px`;
+  if (scaledWidth < container.clientWidth) {
+    wrapper.style.marginLeft = `${(container.clientWidth - scaledWidth) / 2}px`;
   } else {
     wrapper.style.marginLeft = '20px';
   }
@@ -1125,9 +1129,11 @@ window.addEventListener('mouseup', () => {
   }
 });
 
-// [2] 모바일 두 손가락 핀치 줌 기능
+// [2] 모바일 두 손가락 핀치 줌 기능 (손가락 중심점 추적 및 부드러운 애니메이션 적용)
 let initialPinchDistance = null;
 let initialZoomScale = 1;
+let pinchCenter = { x: 0, y: 0 };
+let initialScroll = { left: 0, top: 0 };
 
 pageContainerEl.addEventListener('touchstart', (e) => {
   if (e.touches.length === 2) {
@@ -1136,12 +1142,28 @@ pageContainerEl.addEventListener('touchstart', (e) => {
       e.touches[0].clientY - e.touches[1].clientY
     );
     initialZoomScale = zoomState.scale;
+
+    // 두 손가락의 중간 지점(중심점) 계산
+    pinchCenter = {
+      x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
+      y: (e.touches[0].clientY + e.touches[1].clientY) / 2
+    };
+    
+    // 핀치 시작 시점의 스크롤 위치 저장
+    initialScroll = {
+      left: pageContainerEl.scrollLeft,
+      top: pageContainerEl.scrollTop
+    };
+
+    // 핀치 줌 중에는 반응성을 위해 CSS transition 제거
+    document.getElementById('zoomWrapper').style.transition = 'none';
   }
 }, { passive: true });
 
 pageContainerEl.addEventListener('touchmove', (e) => {
   if (e.touches.length === 2 && initialPinchDistance) {
     e.preventDefault(); // 브라우저 기본 스크롤 및 화면 튕김 방지
+    
     const currentDistance = Math.hypot(
       e.touches[0].clientX - e.touches[1].clientX,
       e.touches[0].clientY - e.touches[1].clientY
@@ -1149,18 +1171,32 @@ pageContainerEl.addEventListener('touchmove', (e) => {
     const ratio = currentDistance / initialPinchDistance;
     let newScale = initialZoomScale * ratio;
     
-    // 확대/축소 제한 범위 (0.25배 ~ 3배)
+    // 확대/축소 제한 범위
     newScale = Math.min(3.0, Math.max(0.25, newScale));
     zoomState.mode = 'custom';
     zoomState.scale = newScale;
     
-    applyZoom();
+    // true 파라미터를 넘겨 마진 재계산(지지직거림) 없이 화면 확대만 적용
+    applyZoom(true);
+
+    // 손가락 중심점을 향해 줌이 되도록 스크롤 위치 보정 로직
+    const scaleRatio = newScale / initialZoomScale;
+    const rect = pageContainerEl.getBoundingClientRect();
+    const relativeCx = pinchCenter.x - rect.left;
+    const relativeCy = pinchCenter.y - rect.top;
+
+    pageContainerEl.scrollLeft = (initialScroll.left + relativeCx) * scaleRatio - relativeCx;
+    pageContainerEl.scrollTop = (initialScroll.top + relativeCy) * scaleRatio - relativeCy;
   }
 }, { passive: false });
 
 pageContainerEl.addEventListener('touchend', (e) => {
-  if (e.touches.length < 2) {
+  if (e.touches.length < 2 && initialPinchDistance) {
     initialPinchDistance = null;
+    
+    // 줌 종료 시 CSS transition 원상복구 및 화면 마진(여백) 최종 재계산
+    document.getElementById('zoomWrapper').style.transition = 'transform 0.1s ease-out';
+    applyZoom(false);
   }
 });
 

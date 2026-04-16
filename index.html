@@ -203,19 +203,20 @@ html, body {
   .page-container { position: static !important; padding: 0 !important; display: block !important; width: 100% !important; height: auto !important; overflow: visible !important; }
   .zoom-wrapper { transform: none !important; display: block !important; width: 100% !important; height: auto !important; overflow: visible !important; gap: 0 !important; margin: 0 auto !important; }
   
-  /* 핵심 변경: mm 단위 대신 픽셀(px) 단위를 사용하여 모바일 브라우저의 '페이지에 맞춤' 자동 축소를 유도합니다. */
+  /* 핵심 변경: 높이(height)를 auto로 변경하고, 안전 한계선(max-height)을 설정합니다. */
   .page { 
-    width: 794px !important; 
-    height: 1123px !important; 
+    width: 190mm !important; /* 209mm에서 약간 줄여 모바일 기기별 여백 차이 흡수 */
+    height: auto !important; /* 296mm 강제 고정 해제 -> 실제 내부 원고지 크기에 딱 맞춤 */
+    min-height: 270mm !important; 
+    max-height: 280mm !important; /* 브라우저의 상하단 강제 여백을 침범하지 않도록 안전선 확보 */
+    
     margin: 0 auto !important; 
-    padding: 60px 47px !important; 
+    padding: 15mm 0 !important; /* 좌우 패딩을 빼고 상하 패딩만 주어 중앙 정렬 유도 */
     box-shadow: none !important; 
     overflow: hidden !important; 
     
-    /* 페이지 내에서 잘리지 않도록 보호 */
     page-break-inside: avoid !important;
     break-inside: avoid !important;
-    
     page-break-after: always !important; 
     break-after: page !important; 
     
@@ -224,13 +225,12 @@ html, body {
     box-sizing: border-box !important; 
   }
   
-  /* 마지막 페이지 뒤에 불필요한 빈 페이지가 생기지 않도록 확실히 차단합니다. */
   .page:last-of-type { 
     page-break-after: auto !important; 
     break-after: auto !important; 
   }
   
-  .page-header { display: flex !important; justify-content: flex-end !important; align-items: baseline !important; gap: 6px !important; width: auto !important; text-align: right !important; padding: 0 4px 10px 0 !important; }
+  .page-header { display: flex !important; justify-content: flex-end !important; align-items: baseline !important; gap: 6px !important; width: 100% !important; max-width: 700px !important; margin: 0 auto !important; text-align: right !important; padding: 0 4px 10px 0 !important; }
   .page-header .page-no-label, .page-header .page-no { width: auto !important; display: inline !important; flex: none !important; text-align: inherit !important; }
 }
 </style>

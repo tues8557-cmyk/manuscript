@@ -194,44 +194,121 @@ html, body {
 
 /* ===== PRINT ===== */
 @media print {
-  @page { size: A4 portrait; margin: 0; }
-  html, body { width: 100% !important; height: auto !important; overflow: visible !important; background: #fff !important; margin: 0 !important; padding: 0 !important; }
-  
-  /* 불필요한 UI 요소 숨김 */
+  /*
+   * ── A4 인쇄 수정 (iOS/iPadOS Safari 포함) ──────────────────────────────
+   *
+   * 문제 원인:
+   *   - .page 는 픽셀 기반 고정 크기(794×1123px)로 설계됨
+   *   - iOS/iPadOS Safari 는 @page margin:0 을 무시하고 자체 여백을 추가함
+   *   - 결과적으로 794px 너비가 인쇄 영역을 초과해 잘리거나 넘침
+   *
+   * 해결 전략:
+   *   1. @page margin 을 0 으로 선언하되, .page 에 충분한 내부 여백 부여
+   *   2. .page 를 mm 단위로 A4 크기 그대로 선언 (210×297mm)
+   *   3. 내부 .grid-wrapper 는 scale 로 축소하여 용지 안에 완전히 수납
+   *      - .page 내부 패딩 제외 실사용 너비(700px) → 180mm(≈680px) 목표
+   *      - scale ≈ 680/700 ≈ 0.971 이지만, iOS 안전 여유 포함 0.93 적용
+   *   4. transform 으로 생긴 빈 공간은 음수 margin 으로 상쇄
+   * ──────────────────────────────────────────────────────────────────────
+   */
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  html, body {
+    width: 210mm !important;
+    height: auto !important;
+    overflow: visible !important;
+    background: #fff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-text-size-adjust: 100% !important;
+    text-size-adjust: 100% !important;
+  }
+
   .toolbar, .toast, #hiddenInput, .truncate-warning { display: none !important; }
-  
-  .page-container { position: static !important; padding: 0 !important; display: block !important; width: 100% !important; height: auto !important; overflow: visible !important; }
-  .zoom-wrapper { transform: none !important; display: block !important; width: 100% !important; height: auto !important; overflow: visible !important; gap: 0 !important; margin: 0 auto !important; }
-  
-  /* 핵심 변경: 높이(height)를 auto로 변경하고, 안전 한계선(max-height)을 설정합니다. */
-  .page { 
-    width: 190mm !important; /* 209mm에서 약간 줄여 모바일 기기별 여백 차이 흡수 */
-    height: auto !important; /* 296mm 강제 고정 해제 -> 실제 내부 원고지 크기에 딱 맞춤 */
-    min-height: 270mm !important; 
-    max-height: 280mm !important; /* 브라우저의 상하단 강제 여백을 침범하지 않도록 안전선 확보 */
-    
-    margin: 0 auto !important; 
-    padding: 15mm 0 !important; /* 좌우 패딩을 빼고 상하 패딩만 주어 중앙 정렬 유도 */
-    box-shadow: none !important; 
-    overflow: hidden !important; 
-    
+
+  .page-container {
+    position: static !important;
+    padding: 0 !important;
+    display: block !important;
+    width: 210mm !important;
+    height: auto !important;
+    overflow: visible !important;
+    top: 0 !important;
+  }
+
+  .zoom-wrapper {
+    transform: none !important;
+    display: block !important;
+    width: 210mm !important;
+    height: auto !important;
+    overflow: visible !important;
+    gap: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .page {
+    /* A4 용지 크기 그대로 mm 단위로 고정 */
+    width: 210mm !important;
+    height: 297mm !important;
+    padding: 15mm 10mm !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+
     page-break-inside: avoid !important;
     break-inside: avoid !important;
-    page-break-after: always !important; 
-    break-after: page !important; 
-    
-    -webkit-print-color-adjust: exact; 
-    print-color-adjust: exact; 
-    box-sizing: border-box !important; 
+    page-break-after: always !important;
+    break-after: page !important;
+
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
-  
-  .page:last-of-type { 
-    page-break-after: auto !important; 
-    break-after: auto !important; 
+
+  .page:last-of-type {
+    page-break-after: auto !important;
+    break-after: auto !important;
   }
-  
-  .page-header { display: flex !important; justify-content: flex-end !important; align-items: baseline !important; gap: 6px !important; width: 100% !important; max-width: 700px !important; margin: 0 auto !important; text-align: right !important; padding: 0 4px 10px 0 !important; }
-  .page-header .page-no-label, .page-header .page-no { width: auto !important; display: inline !important; flex: none !important; text-align: inherit !important; }
+
+  /*
+   * 핵심: grid-wrapper 를 scale 로 축소
+   *   - 20열 × 35px + 테두리 = 약 702px
+   *   - 인쇄 가능 너비: 210mm - 좌우 패딩(10mm×2) = 190mm ≈ 718px (CSS 96dpi 기준)
+   *   - iOS Safari 는 실제 PPI 사용 → 더 보수적으로 scale 0.9 적용
+   *   - scale 0.9 후 실제 너비 = 702×0.9 = 632px ≈ 167mm → 충분히 여유 있음
+   *   - transform 후 생기는 빈 공간(하단): height×(1-scale) = 약 -70px 보정
+   */
+  .grid-wrapper {
+    transform: scale(0.9) !important;
+    transform-origin: top center !important;
+    /* 스케일로 줄어든 높이만큼 빈 공간 제거 */
+    margin-bottom: -72px !important;
+  }
+
+  .page-header {
+    display: flex !important;
+    justify-content: flex-end !important;
+    align-items: baseline !important;
+    gap: 6px !important;
+    width: 100% !important;
+    text-align: right !important;
+    padding: 0 4px 6px 0 !important;
+    flex-shrink: 0 !important;
+  }
+  .page-header .page-no-label,
+  .page-header .page-no {
+    width: auto !important;
+    display: inline !important;
+    flex: none !important;
+    text-align: inherit !important;
+  }
 }
 </style>
 </head>
@@ -1132,7 +1209,10 @@ function changeColor(btn) {
   document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active');
   state.color = btn.dataset.color; document.documentElement.style.setProperty('--grid-color', state.color); saveToURL();
 }
-function doPrint() { closeMenuOnCompact(); setTimeout(() => window.print(), 100); }
+function doPrint() {
+  closeMenuOnCompact();
+  setTimeout(() => window.print(), 150);
+}
 function copyURL() { navigator.clipboard.writeText(location.href).then(() => showToast('현재 문서 주소가 복사되었습니다.')); closeMenuOnCompact(); }
 function copyText() {
   const text = hasSelection() ? getSelectedText() : state.chars.join('');
